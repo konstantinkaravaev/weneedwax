@@ -1,1 +1,42 @@
-<p>submit-record-form works!</p>
+<form [formGroup]="recordForm" (ngSubmit)="onSubmit()" class="record-form">
+  <mat-form-field class="record-form-field">
+    <mat-label>Title</mat-label>
+    <input matInput formControlName="title" />
+  </mat-form-field>
+
+  <mat-form-field class="record-form-field">
+    <mat-label>Artist</mat-label>
+    <input matInput formControlName="artist" required />
+  </mat-form-field>
+
+  <mat-form-field class="record-form-field">
+    <mat-label>Genre</mat-label>
+    <input matInput formControlName="genre" required />
+  </mat-form-field>
+
+  <mat-form-field class="record-form-field">
+    <mat-label>Year</mat-label>
+    <input matInput formControlName="year" type="number" required />
+  </mat-form-field>
+
+  <mat-form-field class="record-form-field">
+    <mat-label>Condition</mat-label>
+    <input matInput formControlName="condition" required />
+  </mat-form-field>
+
+  <mat-form-field class="record-form-field">
+    <mat-label>Price</mat-label>
+    <input matInput formControlName="price" type="number" required />
+  </mat-form-field>
+
+  <input type="file" (change)="onFileChange($event)" formControlName="image" />
+
+  <button
+    mat-raised-button
+    color="primary"
+    type="submit"
+    [disabled]="!recordForm.valid"
+  >
+    Submit
+  </button>
+</form>
