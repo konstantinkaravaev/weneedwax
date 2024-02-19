@@ -14,11 +14,18 @@ export class SubmitRecordFormComponent {
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.recordForm = this.fb.group({
-      title: ['', Validators.required],
-      artist: ['', Validators.required],
-      genre: ['', Validators.required],
-      year: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
-      condition: ['', Validators.required],
+      title: ['', [Validators.required, Validators.minLength(2)]],
+      artist: ['', [Validators.required, Validators.minLength(2)]],
+      genre: ['', [Validators.required, Validators.minLength(2)]],
+      year: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(4),
+          Validators.pattern(/^\d{4}$/),
+        ],
+      ],
+      condition: ['', [Validators.required, Validators.minLength(2)]],
       price: [
         '',
         [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)],
@@ -34,9 +41,9 @@ export class SubmitRecordFormComponent {
       console.log(record);
 
       // Сброс значений формы и явное установление состояния каждого контрола
+      this.recordForm.reset();
       Object.keys(this.recordForm.controls).forEach((key) => {
         const control = this.recordForm.get(key);
-        control?.reset(); // Сбрасываем значение и состояние контрола
         control?.markAsPristine();
         control?.markAsUntouched();
       });
