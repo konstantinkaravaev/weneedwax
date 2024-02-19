@@ -1,35 +1,107 @@
 <form [formGroup]="recordForm" (ngSubmit)="onSubmit()" class="record-form">
   <mat-form-field class="record-form-field">
     <mat-label>Title</mat-label>
-    <input matInput formControlName="title" />
+    <input
+      matInput
+      formControlName="title"
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
   <mat-form-field class="record-form-field">
     <mat-label>Artist</mat-label>
-    <input matInput formControlName="artist" required />
+    <input
+      matInput
+      formControlName="artist"
+      required
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
   <mat-form-field class="record-form-field">
     <mat-label>Genre</mat-label>
-    <input matInput formControlName="genre" required />
+    <input
+      matInput
+      formControlName="genre"
+      required
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
   <mat-form-field class="record-form-field">
     <mat-label>Year</mat-label>
-    <input matInput formControlName="year" type="number" required />
+    <input
+      matInput
+      formControlName="year"
+      type="number"
+      required
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
   <mat-form-field class="record-form-field">
     <mat-label>Condition</mat-label>
-    <input matInput formControlName="condition" required />
+    <input
+      matInput
+      formControlName="condition"
+      required
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
   <mat-form-field class="record-form-field">
     <mat-label>Price</mat-label>
-    <input matInput formControlName="price" type="number" required />
+    <input
+      matInput
+      formControlName="price"
+      type="number"
+      required
+      [ngClass]="{
+        'is-invalid':
+          recordForm.get('title')?.invalid &&
+          (recordForm.get('title')?.dirty ||
+            recordForm.get('title')?.touched) &&
+          !recordForm.get('title')?.pristine
+      }"
+    />
   </mat-form-field>
 
-  <input type="file" (change)="onFileChange($event)" formControlName="image" />
+  <input
+    type="file"
+    (change)="onFileChange($event)"
+    formControlName="image"
+    #fileInput
+  />
 
   <button
     mat-raised-button

@@ -8,6 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AppComponent } from './app.component';
 import { SubmitRecordFormComponent } from './submit-record-form/submit-record-form.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent, SubmitRecordFormComponent],
@@ -19,6 +20,7 @@ import { SubmitRecordFormComponent } from './submit-record-form/submit-record-fo
     MatButtonModule,
     MatSelectModule,
     MatFormFieldModule,
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
