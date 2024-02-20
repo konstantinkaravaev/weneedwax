@@ -100,7 +100,7 @@ export class SubmitRecordFormComponent {
             error: (error) => console.error('Error uploading file', error),
           });
       } else {
-        console.error('File is not a JPEG or PNG image');
+        console.error('File is not a JPEG or PNG image :)');
       }
     }
   }
