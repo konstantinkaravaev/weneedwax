@@ -37,11 +37,12 @@ export class SubmitRecordFormComponent {
   onSubmit() {
     if (this.recordForm.valid) {
       const record: Record = this.recordForm.value;
+
       // Логика отправки данных на сервер
       console.log(record);
 
       // Сброс значений формы и явное установление состояния каждого контрола
-      this.recordForm.reset();
+
       Object.keys(this.recordForm.controls).forEach((key) => {
         const control = this.recordForm.get(key);
         control?.markAsPristine();
@@ -52,8 +53,32 @@ export class SubmitRecordFormComponent {
       if (this.fileInput) {
         this.fileInput.nativeElement.value = '';
       }
+
+      this.http.post('http://localhost:3000/submit', record).subscribe({
+        next: (response) => {
+          console.log('Data sent successfully', response);
+          // Сброс формы после успешной отправки
+          // this.recordForm.reset();
+        },
+        error: (error) => console.error('Error sending data', error),
+      });
+      this.recordForm.reset();
     }
   }
+
+  // resetForm() {
+  //   // Сброс значений формы и явное установление состояния каждого контрола
+  //   this.recordForm.reset();
+  //   Object.keys(this.recordForm.controls).forEach((key) => {
+  //     const control = this.recordForm.get(key);
+  //     control?.markAsPristine();
+  //     control?.markAsUntouched();
+  //   });
+
+  // Если нужно очистить элемент ввода файла
+  // if (this.fileInput) {
+  //   this.fileInput.nativeElement.value = '';
+  // }
 
   onFileChange(event: any) {
     if (event.target.files && event.target.files.length) {
