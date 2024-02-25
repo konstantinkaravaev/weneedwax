@@ -1,3 +1,7 @@
+<nav>
+  <a routerLink="/">Back Home</a>
+</nav>
+
 <form [formGroup]="recordForm" (ngSubmit)="onSubmit()" class="record-form">
   <mat-form-field
     class="record-form-field"
@@ -136,6 +140,7 @@
     color="primary"
     type="submit"
     [disabled]="!recordForm.valid"
+    class="submit-button"
   >
     Submit
   </button>

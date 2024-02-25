@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Record } from './record.model';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-submit-record-form',
@@ -12,7 +13,11 @@ export class SubmitRecordFormComponent {
   @ViewChild('fileInput') fileInput!: ElementRef;
   recordForm: FormGroup;
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private router: Router
+  ) {
     this.recordForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(2)]],
       artist: ['', [Validators.required, Validators.minLength(2)]],
@@ -43,6 +48,16 @@ export class SubmitRecordFormComponent {
 
       // Сброс значений формы и явное установление состояния каждого контрола
 
+      this.http.post('http://localhost:3000/submit', record).subscribe({
+        next: (response) => {
+          console.log('Data sent successfully', response);
+          // Сброс формы после успешной отправки
+          // this.recordForm.reset();
+        },
+        error: (error) => console.error('Error sending data', error),
+      });
+
+      this.recordForm.reset();
       Object.keys(this.recordForm.controls).forEach((key) => {
         const control = this.recordForm.get(key);
         control?.markAsPristine();
@@ -54,15 +69,7 @@ export class SubmitRecordFormComponent {
         this.fileInput.nativeElement.value = '';
       }
 
-      this.http.post('http://localhost:3000/submit', record).subscribe({
-        next: (response) => {
-          console.log('Data sent successfully', response);
-          // Сброс формы после успешной отправки
-          // this.recordForm.reset();
-        },
-        error: (error) => console.error('Error sending data', error),
-      });
-      this.recordForm.reset();
+      this.router.navigate(['/submission-confirmation']);
     }
   }
 

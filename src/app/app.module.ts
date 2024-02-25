@@ -9,9 +9,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { AppComponent } from './app.component';
 import { SubmitRecordFormComponent } from './submit-record-form/submit-record-form.component';
 import { HttpClientModule } from '@angular/common/http';
+import { HomeComponent } from './home/home.component';
+import { RouterModule } from '@angular/router';
+import { SubmissionConfirmationComponent } from './submission-confirmation/submission-confirmation.component';
 
 @NgModule({
-  declarations: [AppComponent, SubmitRecordFormComponent],
+  declarations: [
+    AppComponent,
+    SubmitRecordFormComponent,
+    HomeComponent,
+    SubmissionConfirmationComponent,
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -21,7 +29,16 @@ import { HttpClientModule } from '@angular/common/http';
     MatSelectModule,
     MatFormFieldModule,
     HttpClientModule,
+    RouterModule.forRoot([
+      { path: '', component: HomeComponent },
+      { path: 'submit-record', component: SubmitRecordFormComponent },
+      {
+        path: 'submission-confirmation',
+        component: SubmissionConfirmationComponent,
+      },
+    ]),
   ],
+
   providers: [],
   bootstrap: [AppComponent],
 })

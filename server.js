@@ -40,11 +40,11 @@ app.post("/submit", (req, res) => {
   fs.appendFile(logFilePath, logEntry, (err) => {
     if (err) {
       console.error("Error writing to log file:", err);
-      return res.status(500).send("Error saving data");
+      return res.status(500).json({ error: "Error saving data" });
     }
 
     console.log("Received data from client:", data);
-    res.status(200).send("Data received successfully");
+    res.status(200).json({ message: "Data received successfully" });
   });
 });
 
