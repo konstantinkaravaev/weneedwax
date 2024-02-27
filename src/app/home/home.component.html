@@ -1,6 +1,11 @@
 <div class="home-container">
   <h1 class="greeting">Hey, We Need Wax</h1>
-  <button mat-raised-button color="primary" routerLink="/submit-record">
+  <button
+    (click)="suggestRecords()"
+    mat-raised-button
+    color="primary"
+    routerLink="/submit-record"
+  >
     Suggest Your Records
   </button>
 </div>
