@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Record } from './record.model';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { NgZone } from '@angular/core';
 
 @Component({
   selector: 'app-submit-record-form',
@@ -16,7 +17,8 @@ export class SubmitRecordFormComponent {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {
     this.recordForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(2)]],
@@ -69,7 +71,9 @@ export class SubmitRecordFormComponent {
         this.fileInput.nativeElement.value = '';
       }
 
-      this.router.navigate(['/submission-confirmation']);
+      this.ngZone.run(() => {
+        this.router.navigate(['/submission-confirmation']);
+      });
     }
   }
 
