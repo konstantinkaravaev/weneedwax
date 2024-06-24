@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -6,14 +6,13 @@ import { Router } from '@angular/router';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
   constructor(private router: Router) {}
 
-  ngOnInit(): void {}
-
   suggestRecords() {
-    // Здесь будет логика для функции "Suggest Your Records"
     console.log('Suggest Your Records clicked');
-    this.router.navigate(['/submit-record']);
+    this.router
+      .navigate(['/submit-record'])
+      .catch((err) => console.error('Navigation Error', err));
   }
 }

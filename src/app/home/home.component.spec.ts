@@ -1,13 +1,9 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { Component } from '@angular/core';
 import { SubmitRecordFormComponent } from '../submit-record-form/submit-record-form.component';
-
-// @Component({ template: '' })
-// class DummyComponent {}
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -16,7 +12,7 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HomeComponent, SubmitRecordFormComponent],
+      declarations: [HomeComponent],
       imports: [
         RouterTestingModule.withRoutes([
           { path: 'submit-record', component: SubmitRecordFormComponent },
@@ -26,8 +22,6 @@ describe('HomeComponent', () => {
     }).compileComponents();
 
     router = TestBed.inject(Router);
-    jest.spyOn(router, 'navigate');
-
     fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -44,10 +38,32 @@ describe('HomeComponent', () => {
     );
   });
 
-  it('should call suggestRecords() when the "Suggest Your Records" button is clicked', () => {
+  it('should call suggestRecords() when the "Suggest Your Records" button is clicked', waitForAsync(() => {
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
     const button = fixture.debugElement.nativeElement.querySelector('button');
     button.click();
-    fixture.detectChanges();
-    expect(router.navigate).toHaveBeenCalledWith(['/submit-record']);
-  });
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record']);
+    });
+  }));
+
+  it('should handle navigation errors', waitForAsync(() => {
+    const navigateSpy = jest
+      .spyOn(router, 'navigate')
+      .mockRejectedValue(new Error('Navigation Error'));
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+    const button = fixture.debugElement.nativeElement.querySelector('button');
+    button.click();
+    fixture.whenStable().then(() => {
+      fixture.detectChanges();
+      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record']);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Navigation Error',
+        new Error('Navigation Error')
+      );
+    });
+  }));
 });
