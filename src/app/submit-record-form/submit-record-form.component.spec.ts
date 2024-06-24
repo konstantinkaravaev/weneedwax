@@ -1,20 +1,32 @@
+import {
+  ComponentFixture,
+  TestBed,
+  fakeAsync,
+  tick,
+} from '@angular/core/testing';
+import { SubmitRecordFormComponent } from './submit-record-form.component';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import {
+  HttpClientTestingModule,
+  HttpTestingController,
+} from '@angular/common/http/testing';
+import { RouterTestingModule } from '@angular/router/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { SubmitRecordFormComponent } from './submit-record-form.component';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
+import { Router } from '@angular/router';
+import { SubmissionConfirmationComponent } from '../submission-confirmation/submission-confirmation.component';
 
 describe('SubmitRecordFormComponent', () => {
   let component: SubmitRecordFormComponent;
   let fixture: ComponentFixture<SubmitRecordFormComponent>;
   let mockHttpClient: any;
+  let router: Router;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     mockHttpClient = {
@@ -25,12 +37,17 @@ describe('SubmitRecordFormComponent', () => {
       imports: [
         ReactiveFormsModule,
         HttpClientTestingModule,
-        RouterTestingModule,
+        RouterTestingModule.withRoutes([
+          { path: 'submit-record', component: SubmitRecordFormComponent },
+          {
+            path: 'submission-confirmation',
+            component: SubmissionConfirmationComponent,
+          },
+        ]),
         NoopAnimationsModule,
-        MatFormFieldModule, // Добавьте этот импорт
-        MatInputModule, // Добавьте этот импорт, если вы используете <input matInput>
+        MatFormFieldModule,
+        MatInputModule,
         BrowserAnimationsModule,
-        NoopAnimationsModule,
         MatButtonModule,
       ],
       declarations: [SubmitRecordFormComponent],
@@ -43,6 +60,9 @@ describe('SubmitRecordFormComponent', () => {
     fixture = TestBed.createComponent(SubmitRecordFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    httpTestingController = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate');
   });
 
   it('should create', () => {
@@ -50,8 +70,6 @@ describe('SubmitRecordFormComponent', () => {
   });
 
   it('should validate form fields', () => {
-    console.log('start');
-
     const form = component.recordForm;
     const titleControl = form.get('title');
     const artistControl = form.get('artist');
@@ -62,13 +80,9 @@ describe('SubmitRecordFormComponent', () => {
     expect(form.valid).toBeFalsy();
     expect(titleControl?.errors).toBeTruthy();
     expect(artistControl?.errors).toBeTruthy();
-
-    console.log('end');
   });
 
   it('should not submit the form if it is invalid', () => {
-    console.log('start');
-
     const form = component.recordForm;
     form.setValue({
       title: '',
@@ -84,13 +98,9 @@ describe('SubmitRecordFormComponent', () => {
 
     component.onSubmit();
     expect(mockHttpClient.post).not.toHaveBeenCalled();
-
-    console.log('end');
   });
 
   it('should submit the form if it is valid', () => {
-    console.log('valid test start');
-
     const form = component.recordForm;
     form.setValue({
       title: 'Test Title',
@@ -107,46 +117,43 @@ describe('SubmitRecordFormComponent', () => {
     mockHttpClient.post.mockImplementation(() => of({}));
     component.onSubmit();
     expect(mockHttpClient.post).toHaveBeenCalled();
-
-    console.log('valid test END');
   });
+
+  it('should reset the form after successful submission', () => {
+    const form = component.recordForm;
+    form.setValue({
+      title: 'Test Title',
+      artist: 'Test Artist',
+      genre: 'Test Genre',
+      year: '2000',
+      condition: 'Test Condition',
+      price: '10.00',
+      image: null,
+    });
+
+    mockHttpClient.post.mockReturnValue(of({}));
+    component.onSubmit();
+    expect(form.pristine).toBeTruthy();
+  });
+
+  it('should navigate to submission confirmation page after successful form submission', fakeAsync(() => {
+    const form = component.recordForm;
+    form.setValue({
+      title: 'Test Title',
+      artist: 'Test Artist',
+      genre: 'Test Genre',
+      year: '2000',
+      condition: 'Test Condition',
+      price: '10.00',
+      image: null,
+    });
+
+    mockHttpClient.post.mockReturnValue(of({}));
+    component.onSubmit();
+    fixture.detectChanges();
+
+    tick(); // Убедитесь, что все асинхронные операции завершены
+
+    expect(router.navigate).toHaveBeenCalledWith(['/submission-confirmation']);
+  }));
 });
-
-//   // it('should navigate to submission confirmation page after successful form submission', () => {
-//   //   const form = component.recordForm;
-//   //   form.setValue({
-//   //     title: 'Test Title',
-//   //     artist: 'Test Artist',
-//   //     genre: 'Test Genre',
-//   //     year: '2000',
-//   //     condition: 'Test Condition',
-//   //     price: '10.00',
-//   //     image: null,
-//   //   });
-
-//   //   mockHttpClient.post.mockReturnValue(of({}));
-//   //   component.onSubmit();
-//   //   expect(mockRouter.navigate).toHaveBeenCalledWith([
-//   //     '/submission-confirmation',
-//   //   ]);
-//   // });
-
-//   // it('should reset the form after successful submission', () => {
-//   //   const form = component.recordForm;
-//   //   form.setValue({
-//   //     title: 'Test Title',
-//   //     artist: 'Test Artist',
-//   //     genre: 'Test Genre',
-//   //     year: '2000',
-//   //     condition: 'Test Condition',
-//   //     price: '10.00',
-//   //     image: null,
-//   //   });
-
-//   //   mockHttpClient.post.mockReturnValue(of({}));
-//   //   component.onSubmit();
-//   //   expect(form.pristine).toBeTruthy();
-//   // });
-
-//   // Добавьте другие тесты здесь, например, для проверки onFileChange
-// });
