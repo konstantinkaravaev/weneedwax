@@ -1,0 +1,24 @@
+@import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  padding: 15px;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.mat-form-field-underline {
+  background-color: green;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}

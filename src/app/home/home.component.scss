@@ -1,0 +1,17 @@
+.home-container {
+  text-align: center;
+  margin-top: 50px;
+
+  .greeting {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+.home-button {
+  background-color: #ff4081 !important; // Новый цвет фона кнопки
+  color: white !important; // Новый цвет текста
+  &:hover {
+    background-color: #f50057 !important; // Новый цвет фона кнопки при наведении
+  }
+}

@@ -1,0 +1,20 @@
+// .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+//   background-color: aliceblue;
+// }
+.record-form {
+  display: flex;
+  flex-direction: column;
+  // align-items: center;
+  justify-content: center; // Центрирует содержимое по вертикали
+  max-width: 300px;
+  width: 100%; // Занимает всю ширину родительского контейнера
+  margin: 0 auto; // Центрирует форму по горизонтали
+
+  .record-form-field {
+    width: 100%;
+  }
+}
+
+.submit-button {
+  margin-top: 20px;
+}
