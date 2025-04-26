@@ -47,25 +47,29 @@ export class SubmitRecordFormComponent {
         formData.append('file', this.selectedFile);
       }
 
-      this.http.post('/submit', formData).subscribe({
-        next: (response) => {
-          console.log('Data sent successfully', response);
-          this.resetForm();
-          this.ngZone.run(() => {
-            this.router.navigate(['/submission-confirmation']);
-          });
-        },
-        error: (error) => console.error('Error sending data', error),
-      });
+      console.log('Form Data Ready to Send:', formData);
+
+      setTimeout(() => {
+        console.log('Data sent successfully (mock)');
+        this.resetForm();
+        this.ngZone.run(() => {
+          this.router.navigate(['/submission-confirmation']);
+        });
+      }, 500);
     } else {
       console.log('Form is invalid');
     }
   }
-
   resetForm() {
     this.recordForm.reset();
+
+    this.recordForm.markAsPristine();
+    this.recordForm.markAsUntouched();
+    this.recordForm.updateValueAndValidity();
+
     this.selectedFile = null;
-    if (this.fileInput) {
+
+    if (this.fileInput && this.fileInput.nativeElement) {
       this.fileInput.nativeElement.value = '';
     }
   }
