@@ -49,13 +49,18 @@ export class SubmitRecordFormComponent {
 
       console.log('Form Data Ready to Send:', formData);
 
-      setTimeout(() => {
-        console.log('Data sent successfully (mock)');
-        this.resetForm();
-        this.ngZone.run(() => {
-          this.router.navigate(['/submission-confirmation']);
-        });
-      }, 500);
+      this.http.post('https://weneedwax.com/upload', formData).subscribe({
+        next: (response) => {
+          console.log('Data sent successfully:', response);
+          this.resetForm();
+          this.ngZone.run(() => {
+            this.router.navigate(['/submission-confirmation']);
+          });
+        },
+        error: (error) => {
+          console.error('Error sending data:', error);
+        },
+      });
     } else {
       console.log('Form is invalid');
     }

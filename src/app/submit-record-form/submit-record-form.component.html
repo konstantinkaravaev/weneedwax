@@ -2,7 +2,12 @@
   <a routerLink="/">Back Home</a>
 </nav>
 
-<form [formGroup]="recordForm" (ngSubmit)="onSubmit()" class="record-form">
+<form
+  [formGroup]="recordForm"
+  (ngSubmit)="onSubmit()"
+  class="record-form"
+  enctype="multipart/form-data"
+>
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -12,10 +17,7 @@
   >
     <mat-label>Title</mat-label>
     <input matInput formControlName="title" />
-
-    <mat-error
-      *ngIf="recordForm.get('title')?.errors?.['required'] && (recordForm.get('title')?.dirty || recordForm.get('title')?.touched) && !recordForm.get('title')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('title')?.errors?.['required']">
       Title is required
     </mat-error>
     <mat-error *ngIf="recordForm.get('title')?.errors?.['minlength']">
@@ -32,13 +34,9 @@
   >
     <mat-label>Artist</mat-label>
     <input matInput formControlName="artist" />
-
-    <mat-error
-      *ngIf="recordForm.get('artist')?.errors?.['required'] && (recordForm.get('artist')?.dirty || recordForm.get('artist')?.touched) && !recordForm.get('artist')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('artist')?.errors?.['required']">
       Artist is required
     </mat-error>
-
     <mat-error *ngIf="recordForm.get('artist')?.errors?.['minlength']">
       Artist must be at least 2 characters
     </mat-error>
@@ -53,13 +51,9 @@
   >
     <mat-label>Genre</mat-label>
     <input matInput formControlName="genre" />
-
-    <mat-error
-      *ngIf="recordForm.get('genre')?.errors?.['required'] && (recordForm.get('genre')?.dirty || recordForm.get('genre')?.touched) && !recordForm.get('genre')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('genre')?.errors?.['required']">
       Genre is required
     </mat-error>
-
     <mat-error *ngIf="recordForm.get('genre')?.errors?.['minlength']">
       Genre must be at least 2 characters
     </mat-error>
@@ -74,15 +68,8 @@
   >
     <mat-label>Year</mat-label>
     <input matInput formControlName="year" />
-
-    <mat-error
-      *ngIf="recordForm.get('year')?.errors?.['required'] && (recordForm.get('year')?.dirty || recordForm.get('year')?.touched) && !recordForm.get('year')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('year')?.errors?.['required']">
       Year is required
-    </mat-error>
-
-    <mat-error *ngIf="recordForm.get('year')?.errors?.['minlength']">
-      Year must be at least 4 digits
     </mat-error>
     <mat-error *ngIf="recordForm.get('year')?.errors?.['pattern']">
       Year must be a valid number
@@ -99,13 +86,9 @@
   >
     <mat-label>Condition</mat-label>
     <input matInput formControlName="condition" />
-
-    <mat-error
-      *ngIf="recordForm.get('condition')?.errors?.['required'] && (recordForm.get('condition')?.dirty || recordForm.get('condition')?.touched) && !recordForm.get('condition')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('condition')?.errors?.['required']">
       Condition is required
     </mat-error>
-
     <mat-error *ngIf="recordForm.get('condition')?.errors?.['minlength']">
       Condition must be at least 2 characters
     </mat-error>
@@ -120,20 +103,13 @@
   >
     <mat-label>Price</mat-label>
     <input matInput formControlName="price" />
-
-    <mat-error
-      *ngIf="recordForm.get('price')?.errors?.['required'] && (recordForm.get('price')?.dirty || recordForm.get('price')?.touched) && !recordForm.get('price')?.pristine"
-    >
+    <mat-error *ngIf="recordForm.get('price')?.errors?.['required']">
       Price is required
     </mat-error>
   </mat-form-field>
 
-  <input
-    type="file"
-    (change)="onFileChange($event)"
-    formControlName="image"
-    #fileInput
-  />
+  <!-- 🚀 Важное исправление тут: убрал formControlName="image"! -->
+  <input type="file" (change)="onFileChange($event)" #fileInput />
 
   <button
     mat-raised-button
