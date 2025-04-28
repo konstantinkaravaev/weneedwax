@@ -14,7 +14,7 @@ scp server.js $USER@$HOST:$REMOTE_DIR/
 scp package.json $USER@$HOST:$REMOTE_DIR/
 
 echo "Installing dependencies and restarting server..."
-ssh $USER@$HOST << 'ENDSSH'
+ssh -tt $USER@$HOST << 'ENDSSH'
   cd /home/ec2-user/weneedwax
   npm install --production
   pm2 restart all
