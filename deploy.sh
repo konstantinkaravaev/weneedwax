@@ -1,18 +1,24 @@
 #!/bin/bash
-echo "Starting deployment..."
 
-cd /home/ec2-user/weneedwax || exit
-
-echo "Pulling latest changes from main branch..."
-git pull origin main
-
-echo "Installing dependencies..."
-npm install
+# Configuration
+USER="ec2-user"
+HOST="18.119.128.246"
+REMOTE_DIR="/home/ec2-user/weneedwax"
 
 echo "Building frontend..."
 npm run build
 
-echo "Restarting server with PM2..."
-pm2 restart ecosystem.config.js
+echo "Copying files to server..."
+scp -r dist/ $USER@$HOST:$REMOTE_DIR/
+scp server.js $USER@$HOST:$REMOTE_DIR/
+scp package.json $USER@$HOST:$REMOTE_DIR/
 
-echo "Deployment finished successfully!"
+echo "Installing dependencies and restarting server..."
+ssh $USER@$HOST << 'ENDSSH'
+  cd /home/ec2-user/weneedwax
+  npm install --production
+  pm2 restart all
+  pm2 save
+ENDSSH
+
+echo "Deploy completed successfully."
