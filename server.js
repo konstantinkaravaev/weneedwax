@@ -13,12 +13,6 @@ const app = express();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// SSL сертификаты
-const sslOptions = {
-  key: fs.readFileSync("/etc/letsencrypt/live/weneedwax.com/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/live/weneedwax.com/fullchain.pem"),
-};
-
 // Папки
 const distDir = path.join(__dirname, "dist", "weneedwax");
 const uploadDir = path.join(__dirname, "uploads");
@@ -35,7 +29,7 @@ app.use(
       "http://weneedwax.com",
       "http://localhost:4200",
     ],
-  })
+  }),
 );
 
 app.use(bodyParser.json());
@@ -118,7 +112,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       }
 
       res.status(200).json({ message: "Upload successful" });
-    }
+    },
   );
 });
 
@@ -127,17 +121,34 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(distDir, "index.html"));
 });
 
-// 🚀 HTTPS сервер
-https.createServer(sslOptions, app).listen(443, () => {
-  console.log("✅ HTTPS сервер запущен на порту 443");
-});
+// Определяем окружение
+const isProduction = process.env.NODE_ENV === "production";
 
-// 🌐 HTTP перенаправление на HTTPS
-http
-  .createServer((req, res) => {
-    res.writeHead(301, { Location: "https://" + req.headers.host + req.url });
-    res.end();
-  })
-  .listen(80, () => {
-    console.log("ℹ️ HTTP -> HTTPS редирект запущен на порту 80");
+// Запуск сервера
+if (isProduction) {
+  // 🚀 HTTPS сервер для продакшена
+  const sslOptions = {
+    key: fs.readFileSync("/etc/letsencrypt/live/weneedwax.com/privkey.pem"),
+    cert: fs.readFileSync("/etc/letsencrypt/live/weneedwax.com/fullchain.pem"),
+  };
+
+  https.createServer(sslOptions, app).listen(443, () => {
+    console.log("✅ HTTPS сервер запущен на порту 443");
   });
+
+  // 🌐 HTTP перенаправление на HTTPS
+  http
+    .createServer((req, res) => {
+      res.writeHead(301, { Location: "https://" + req.headers.host + req.url });
+      res.end();
+    })
+    .listen(80, () => {
+      console.log("ℹ️ HTTP -> HTTPS редирект запущен на порту 80");
+    });
+} else {
+  // 🚀 HTTP сервер для локальной разработки
+  const PORT = process.env.PORT || 3000;
+  http.createServer(app).listen(PORT, () => {
+    console.log(`✅ HTTP сервер запущен на порту ${PORT}`);
+  });
+}
