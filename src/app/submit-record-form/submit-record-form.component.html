@@ -8,6 +8,7 @@
   class="record-form"
   enctype="multipart/form-data"
 >
+  <!-- Title -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -25,6 +26,7 @@
     </mat-error>
   </mat-form-field>
 
+  <!-- Artist -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -42,6 +44,7 @@
     </mat-error>
   </mat-form-field>
 
+  <!-- Genre -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -59,6 +62,7 @@
     </mat-error>
   </mat-form-field>
 
+  <!-- Year -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -76,6 +80,7 @@
     </mat-error>
   </mat-form-field>
 
+  <!-- Condition -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -94,6 +99,7 @@
     </mat-error>
   </mat-form-field>
 
+  <!-- Price -->
   <mat-form-field
     class="record-form-field"
     [class.mat-form-field-invalid]="
@@ -108,9 +114,19 @@
     </mat-error>
   </mat-form-field>
 
-  <!-- 🚀 Важное исправление тут: убрал formControlName="image"! -->
-  <input type="file" (change)="onFileChange($event)" #fileInput />
+  <!-- Image Upload -->
+  <div class="record-form-field">
+    <label for="file">Upload record photo (HEIC, JPEG, PNG)</label><br />
+    <input
+      type="file"
+      id="file"
+      (change)="onFileChange($event)"
+      #fileInput
+      accept="image/*"
+    />
+  </div>
 
+  <!-- Submit -->
   <button
     mat-raised-button
     color="primary"

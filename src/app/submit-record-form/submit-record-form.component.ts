@@ -4,6 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
 
+import imageCompression from 'browser-image-compression';
+import heic2any from 'heic2any';
+
 @Component({
   selector: 'app-submit-record-form',
   templateUrl: './submit-record-form.component.html',
@@ -18,7 +21,7 @@ export class SubmitRecordFormComponent {
     private fb: FormBuilder,
     private http: HttpClient,
     private router: Router,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {
     this.recordForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(2)]],
@@ -31,6 +34,45 @@ export class SubmitRecordFormComponent {
         [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)],
       ],
     });
+  }
+
+  async onFileChange(event: any) {
+    if (event.target.files && event.target.files.length > 0) {
+      let file = event.target.files[0];
+
+      try {
+        // HEIC to JPEG conversion
+        if (
+          file.type === 'image/heic' ||
+          file.name.toLowerCase().endsWith('.heic')
+        ) {
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+          });
+          file = new File(
+            [convertedBlob as Blob],
+            file.name.replace(/\.heic$/, '.jpg'),
+            {
+              type: 'image/jpeg',
+            },
+          );
+        }
+
+        // Compression and resize
+        const compressed = await imageCompression(file, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+        });
+
+        this.selectedFile = compressed;
+        console.log('File processed:', this.selectedFile);
+      } catch (err) {
+        console.error('File processing error:', err);
+        this.selectedFile = null;
+      }
+    }
   }
 
   onSubmit() {
@@ -65,29 +107,16 @@ export class SubmitRecordFormComponent {
       console.log('Form is invalid');
     }
   }
+
   resetForm() {
     this.recordForm.reset();
-
     this.recordForm.markAsPristine();
     this.recordForm.markAsUntouched();
     this.recordForm.updateValueAndValidity();
-
     this.selectedFile = null;
 
     if (this.fileInput && this.fileInput.nativeElement) {
       this.fileInput.nativeElement.value = '';
-    }
-  }
-
-  onFileChange(event: any) {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      if (file.type === 'image/jpeg' || file.type === 'image/png') {
-        this.selectedFile = file;
-      } else {
-        console.error('File must be JPEG or PNG format');
-        this.selectedFile = null;
-      }
     }
   }
 }
