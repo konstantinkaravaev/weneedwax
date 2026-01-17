@@ -8,6 +8,7 @@ declare global {
       execute?: (siteKey: string, options: { action: string }) => Promise<string>;
       enterprise?: {
         execute: (siteKey: string, options: { action: string }) => Promise<string>;
+        ready?: (cb: () => void) => void;
       };
       ready?: (cb: () => void) => void;
       enterpriseReady?: (cb: () => void) => void;
@@ -15,10 +16,15 @@ declare global {
   }
 }
 
+type RecaptchaProvider = "v3" | "enterprise";
+
 @Injectable({ providedIn: "root" })
 export class RecaptchaService {
   private loadPromise: Promise<void> | null = null;
   private readonly siteKey = environment.recaptchaSiteKey;
+  private readonly provider =
+    (environment as { recaptchaProvider?: RecaptchaProvider }).recaptchaProvider ||
+    "v3";
 
   load(): Promise<void> {
     if (!this.siteKey) {
@@ -36,7 +42,11 @@ export class RecaptchaService {
 
     this.loadPromise = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
+      const baseUrl =
+        this.provider === "enterprise"
+          ? "https://www.google.com/recaptcha/enterprise.js"
+          : "https://www.google.com/recaptcha/api.js";
+      script.src = `${baseUrl}?render=${this.siteKey}`;
       script.async = true;
       script.defer = true;
       script.onload = () => resolve();
@@ -55,14 +65,22 @@ export class RecaptchaService {
       throw new Error("reCAPTCHA is not available");
     }
 
-    if (grecaptcha.enterprise?.execute) {
-      return grecaptcha.enterprise.execute(this.siteKey, { action });
+    const api =
+      this.provider === "enterprise" && grecaptcha.enterprise
+        ? grecaptcha.enterprise
+        : grecaptcha;
+
+    const ready =
+      api.ready || grecaptcha.ready || grecaptcha.enterpriseReady || null;
+
+    if (ready) {
+      await new Promise<void>((resolve) => ready(() => resolve()));
     }
 
-    if (grecaptcha.execute) {
-      return grecaptcha.execute(this.siteKey, { action });
+    if (!api.execute) {
+      throw new Error("reCAPTCHA execute not available");
     }
 
-    throw new Error("reCAPTCHA execute not available");
+    return api.execute(this.siteKey, { action });
   }
 }

@@ -85,7 +85,7 @@ export class SubmitRecordFormComponent {
         console.log('File processed:', this.selectedFile);
       } catch (err) {
         console.error('File processing error:', err);
-        this.fileError = 'Не удалось обработать файл. Попробуйте другой снимок.';
+        this.fileError = 'Unable to process the file. Please try another image.';
         this.recordForm.get('file')?.setErrors({ processing: true });
         this.selectedFile = null;
       } finally {
@@ -126,7 +126,7 @@ export class SubmitRecordFormComponent {
     } catch (error) {
       console.error('reCAPTCHA error:', error);
       this.submitError =
-        'Не удалось пройти проверку. Обновите страницу и попробуйте снова.';
+        'Verification failed. Refresh the page and try again.';
       this.isSubmitting = false;
       return;
     }
@@ -146,7 +146,7 @@ export class SubmitRecordFormComponent {
       error: (error) => {
         console.error('Error sending data:', error);
         this.submitError =
-          'Не удалось отправить форму. Проверьте соединение и попробуйте снова.';
+          'Unable to submit the form. Check your connection and try again.';
         this.isSubmitting = false;
       },
       complete: () => {

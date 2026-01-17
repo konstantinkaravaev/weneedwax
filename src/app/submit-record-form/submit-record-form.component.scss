@@ -5,10 +5,10 @@
   display: flex;
   flex-direction: column;
   // align-items: center;
-  justify-content: center; // Центрирует содержимое по вертикали
+  justify-content: center; // Centers content vertically
   max-width: 300px;
-  width: 100%; // Занимает всю ширину родительского контейнера
-  margin: 0 auto; // Центрирует форму по горизонтали
+  width: 100%; // Takes full width of the parent container
+  margin: 0 auto; // Centers the form horizontally
 
   .record-form-field {
     width: 100%;
