@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
@@ -30,6 +31,7 @@ import { SubmissionConfirmationComponent } from './submission-confirmation/submi
     MatButtonModule,
     MatSelectModule,
     MatFormFieldModule,
+    MatProgressSpinnerModule,
     HttpClientModule,
     RouterModule.forRoot([
       { path: '', component: HomeComponent },

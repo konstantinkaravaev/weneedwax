@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Configuration
 USER="ec2-user"
@@ -10,14 +11,14 @@ npm run build
 
 echo "Copying files to server..."
 scp -r dist/ $USER@$HOST:$REMOTE_DIR/
-scp server.js $USER@$HOST:$REMOTE_DIR/
-scp package.json $USER@$HOST:$REMOTE_DIR/
+scp -r server/ $USER@$HOST:$REMOTE_DIR/
+scp -r ops/ $USER@$HOST:$REMOTE_DIR/
 
 echo "Installing dependencies and restarting server..."
 ssh -tt $USER@$HOST << 'ENDSSH'
   cd /home/ec2-user/weneedwax
-  npm install --production
-  pm2 restart all
+  (cd server && npm install --production)
+  pm2 startOrReload /home/ec2-user/weneedwax/ops/ecosystem.config.js
   pm2 save
 ENDSSH
 

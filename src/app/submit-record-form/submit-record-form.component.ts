@@ -4,8 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
 
-import imageCompression from 'browser-image-compression';
-import heic2any from 'heic2any';
+import { environment } from '../../environments/environment';
+import { RecaptchaService } from '../services/recaptcha.service';
 
 @Component({
   selector: 'app-submit-record-form',
@@ -16,12 +16,17 @@ export class SubmitRecordFormComponent {
   @ViewChild('fileInput') fileInput!: ElementRef;
   recordForm: FormGroup;
   selectedFile: File | null = null;
+  isProcessingFile = false;
+  isSubmitting = false;
+  fileError: string | null = null;
+  submitError: string | null = null;
 
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
     private router: Router,
     private ngZone: NgZone,
+    private recaptcha: RecaptchaService,
   ) {
     this.recordForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(2)]],
@@ -33,14 +38,23 @@ export class SubmitRecordFormComponent {
         '',
         [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)],
       ],
+      file: [null, Validators.required],
     });
   }
 
-  async onFileChange(event: any) {
-    if (event.target.files && event.target.files.length > 0) {
-      let file = event.target.files[0];
+  async onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.fileError = null;
+
+    if (input?.files && input.files.length > 0) {
+      let file = input.files[0];
+      this.isProcessingFile = true;
 
       try {
+        const imageCompression = (await import('browser-image-compression'))
+          .default;
+        const heic2any = (await import('heic2any')).default;
+
         // HEIC to JPEG conversion
         if (
           file.type === 'image/heic' ||
@@ -67,45 +81,78 @@ export class SubmitRecordFormComponent {
         });
 
         this.selectedFile = compressed;
+        this.recordForm.get('file')?.setValue(this.selectedFile);
         console.log('File processed:', this.selectedFile);
       } catch (err) {
         console.error('File processing error:', err);
+        this.fileError = 'Не удалось обработать файл. Попробуйте другой снимок.';
+        this.recordForm.get('file')?.setErrors({ processing: true });
         this.selectedFile = null;
+      } finally {
+        this.isProcessingFile = false;
       }
+    } else {
+      this.selectedFile = null;
+      this.recordForm.get('file')?.setValue(null);
     }
   }
 
-  onSubmit() {
-    if (this.recordForm.valid) {
-      const formData = new FormData();
-      formData.append('title', this.recordForm.value.title);
-      formData.append('artist', this.recordForm.value.artist);
-      formData.append('genre', this.recordForm.value.genre);
-      formData.append('year', this.recordForm.value.year);
-      formData.append('condition', this.recordForm.value.condition);
-      formData.append('price', this.recordForm.value.price);
+  async onSubmit() {
+    this.submitError = null;
 
-      if (this.selectedFile) {
-        formData.append('file', this.selectedFile);
-      }
-
-      console.log('Form Data Ready to Send:', formData);
-
-      this.http.post('https://weneedwax.com/upload', formData).subscribe({
-        next: (response) => {
-          console.log('Data sent successfully:', response);
-          this.resetForm();
-          this.ngZone.run(() => {
-            this.router.navigate(['/submission-confirmation']);
-          });
-        },
-        error: (error) => {
-          console.error('Error sending data:', error);
-        },
-      });
-    } else {
+    if (!this.recordForm.valid || !this.selectedFile) {
+      this.recordForm.markAllAsTouched();
+      this.recordForm.get('file')?.setErrors({ required: true });
       console.log('Form is invalid');
+      return;
     }
+
+    const formData = new FormData();
+    formData.append('title', this.recordForm.value.title);
+    formData.append('artist', this.recordForm.value.artist);
+    formData.append('genre', this.recordForm.value.genre);
+    formData.append('year', this.recordForm.value.year);
+    formData.append('condition', this.recordForm.value.condition);
+    formData.append('price', this.recordForm.value.price);
+    formData.append('file', this.selectedFile);
+
+    console.log('Form Data Ready to Send:', formData);
+
+    this.isSubmitting = true;
+
+    try {
+      const token = await this.recaptcha.execute('submit');
+      formData.append('recaptchaToken', token);
+    } catch (error) {
+      console.error('reCAPTCHA error:', error);
+      this.submitError =
+        'Не удалось пройти проверку. Обновите страницу и попробуйте снова.';
+      this.isSubmitting = false;
+      return;
+    }
+
+    const uploadUrl = environment.apiBaseUrl
+      ? `${environment.apiBaseUrl}/upload`
+      : '/upload';
+
+    this.http.post(uploadUrl, formData).subscribe({
+      next: (response) => {
+        console.log('Data sent successfully:', response);
+        this.resetForm();
+        this.ngZone.run(() => {
+          this.router.navigate(['/submission-confirmation']);
+        });
+      },
+      error: (error) => {
+        console.error('Error sending data:', error);
+        this.submitError =
+          'Не удалось отправить форму. Проверьте соединение и попробуйте снова.';
+        this.isSubmitting = false;
+      },
+      complete: () => {
+        this.isSubmitting = false;
+      },
+    });
   }
 
   resetForm() {
@@ -114,6 +161,10 @@ export class SubmitRecordFormComponent {
     this.recordForm.markAsUntouched();
     this.recordForm.updateValueAndValidity();
     this.selectedFile = null;
+    this.fileError = null;
+    this.submitError = null;
+    this.isProcessingFile = false;
+    this.isSubmitting = false;
 
     if (this.fileInput && this.fileInput.nativeElement) {
       this.fileInput.nativeElement.value = '';
