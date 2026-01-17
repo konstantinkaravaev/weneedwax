@@ -5,16 +5,30 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
 const app = express();
 
-const resend = new Resend(process.env.RESEND_API_KEY || "");
-const resendFrom = process.env.RESEND_FROM || "info@weneedwax.com";
-const resendTo = (process.env.RESEND_TO || "hey@weneedwax.com")
+const sesHost = process.env.SES_SMTP_HOST || "";
+const sesUser = process.env.SES_SMTP_USER || "";
+const sesPass = process.env.SES_SMTP_PASS || "";
+const sesPort = Number(process.env.SES_SMTP_PORT || 587);
+const mailFrom = process.env.SES_FROM || "info@weneedwax.com";
+const mailTo = (process.env.SES_TO || "hey@weneedwax.com")
   .split(",")
   .map((email) => email.trim())
   .filter(Boolean);
+const mailTransport = sesHost && sesUser && sesPass
+  ? nodemailer.createTransport({
+      host: sesHost,
+      port: sesPort,
+      secure: sesPort === 465,
+      auth: {
+        user: sesUser,
+        pass: sesPass,
+      },
+    })
+  : null;
 const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY || "";
 const recaptchaMinScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
 const maxFileSizeMb = Number(process.env.MAX_UPLOAD_MB || 10);
@@ -196,21 +210,30 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     return res.status(500).json({ message: "Failed to save form data" });
   }
 
-  if (!process.env.RESEND_API_KEY) {
-    console.error("Missing RESEND_API_KEY");
+  if (!mailTransport) {
+    console.error("Missing SES SMTP configuration");
     return res.status(500).json({ message: "Email service not configured" });
   }
 
-  if (resendTo.length === 0) {
-    console.error("Missing RESEND_TO");
+  if (mailTo.length === 0) {
+    console.error("Missing SES_TO");
     return res.status(500).json({ message: "Email recipients not configured" });
   }
 
   try {
-    await resend.emails.send({
-      from: resendFrom,
-      to: resendTo,
+    const attachment = req.file
+      ? [{
+          filename: req.file.originalname,
+          path: req.file.path,
+          contentType: req.file.mimetype
+        }]
+      : [];
+
+    await mailTransport.sendMail({
+      from: mailFrom,
+      to: mailTo,
       subject: "New submission on We Need Wax",
+      attachments: attachment,
       html: `
         <h2>New Submission</h2>
         <table style="border-collapse: collapse; width: 100%;">
