@@ -38,6 +38,7 @@ app.use(
       "http://weneedwax.com",
       "https://www.weneedwax.com",
       "http://www.weneedwax.com",
+      "https://konstantinkaravaev.github.io",
       "http://localhost:4200",
     ],
   }),
