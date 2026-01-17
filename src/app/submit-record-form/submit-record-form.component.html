@@ -112,6 +112,9 @@
     <mat-error *ngIf="recordForm.get('price')?.errors?.['required']">
       Price is required
     </mat-error>
+    <mat-error *ngIf="recordForm.get('price')?.errors?.['pattern']">
+      Use a valid number (e.g. 10 or 10.50)
+    </mat-error>
   </mat-form-field>
 
   <!-- Image Upload -->
@@ -124,16 +127,41 @@
       #fileInput
       accept="image/*"
     />
+    <div *ngIf="isProcessingFile">Processing image...</div>
+    <div *ngIf="fileError" class="error-text">{{ fileError }}</div>
+    <div
+      *ngIf="
+        recordForm.get('file')?.invalid &&
+        (recordForm.get('file')?.dirty || recordForm.get('file')?.touched)
+      "
+      class="error-text"
+    >
+      Photo is required
+    </div>
   </div>
 
   <!-- Submit -->
-  <button
-    mat-raised-button
-    color="primary"
-    type="submit"
-    [disabled]="!recordForm.valid"
-    class="submit-button"
-  >
-    Submit
-  </button>
+  <div class="submit-row">
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="
+        isProcessingFile || isSubmitting || recordForm.invalid || !!submitError
+      "
+      class="submit-button"
+    >
+      <ng-container *ngIf="!isSubmitting; else submitting">
+        Submit
+      </ng-container>
+      <ng-template #submitting>
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="24"
+          strokeWidth="3"
+        ></mat-progress-spinner>
+      </ng-template>
+    </button>
+    <div *ngIf="submitError" class="error-text">{{ submitError }}</div>
+  </div>
 </form>

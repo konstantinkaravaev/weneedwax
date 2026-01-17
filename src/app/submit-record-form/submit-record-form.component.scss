@@ -18,3 +18,15 @@
 .submit-button {
   margin-top: 20px;
 }
+
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 12px;
+}

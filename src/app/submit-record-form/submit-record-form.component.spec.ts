@@ -1,9 +1,4 @@
-import {
-  ComponentFixture,
-  TestBed,
-  fakeAsync,
-  tick,
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SubmitRecordFormComponent } from './submit-record-form.component';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import {
@@ -15,22 +10,28 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { Router } from '@angular/router';
 import { SubmissionConfirmationComponent } from '../submission-confirmation/submission-confirmation.component';
+import { RecaptchaService } from '../services/recaptcha.service';
 
 describe('SubmitRecordFormComponent', () => {
   let component: SubmitRecordFormComponent;
   let fixture: ComponentFixture<SubmitRecordFormComponent>;
   let mockHttpClient: any;
+  let mockRecaptcha: any;
   let router: Router;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     mockHttpClient = {
       post: jest.fn(),
+    };
+    mockRecaptcha = {
+      execute: jest.fn().mockResolvedValue('test-token'),
     };
 
     await TestBed.configureTestingModule({
@@ -49,11 +50,13 @@ describe('SubmitRecordFormComponent', () => {
         MatInputModule,
         BrowserAnimationsModule,
         MatButtonModule,
+        MatProgressSpinnerModule,
       ],
       declarations: [SubmitRecordFormComponent],
       providers: [
         FormBuilder,
         { provide: HttpClient, useValue: mockHttpClient },
+        { provide: RecaptchaService, useValue: mockRecaptcha },
       ],
     }).compileComponents();
 
@@ -91,7 +94,7 @@ describe('SubmitRecordFormComponent', () => {
       year: '',
       condition: '',
       price: '',
-      image: null,
+      file: null,
     });
 
     expect(form.valid).toBeFalsy();
@@ -100,8 +103,9 @@ describe('SubmitRecordFormComponent', () => {
     expect(mockHttpClient.post).not.toHaveBeenCalled();
   });
 
-  it('should submit the form if it is valid', () => {
+  it('should submit the form if it is valid', async () => {
     const form = component.recordForm;
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
       title: 'Test Title',
       artist: 'Test Artist',
@@ -109,18 +113,20 @@ describe('SubmitRecordFormComponent', () => {
       year: '2000',
       condition: 'Test Condition',
       price: '10.00',
-      image: null,
+      file,
     });
 
     expect(form.valid).toBeTruthy();
 
+    component.selectedFile = file;
     mockHttpClient.post.mockImplementation(() => of({}));
-    component.onSubmit();
+    await component.onSubmit();
     expect(mockHttpClient.post).toHaveBeenCalled();
   });
 
-  it('should reset the form after successful submission', () => {
+  it('should reset the form after successful submission', async () => {
     const form = component.recordForm;
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
       title: 'Test Title',
       artist: 'Test Artist',
@@ -128,16 +134,18 @@ describe('SubmitRecordFormComponent', () => {
       year: '2000',
       condition: 'Test Condition',
       price: '10.00',
-      image: null,
+      file,
     });
 
+    component.selectedFile = file;
     mockHttpClient.post.mockReturnValue(of({}));
-    component.onSubmit();
+    await component.onSubmit();
     expect(form.pristine).toBeTruthy();
   });
 
-  it('should navigate to submission confirmation page after successful form submission', fakeAsync(() => {
+  it('should navigate to submission confirmation page after successful form submission', async () => {
     const form = component.recordForm;
+    const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
       title: 'Test Title',
       artist: 'Test Artist',
@@ -145,15 +153,14 @@ describe('SubmitRecordFormComponent', () => {
       year: '2000',
       condition: 'Test Condition',
       price: '10.00',
-      image: null,
+      file,
     });
 
+    component.selectedFile = file;
     mockHttpClient.post.mockReturnValue(of({}));
-    component.onSubmit();
+    await component.onSubmit();
     fixture.detectChanges();
 
-    tick(); // Убедитесь, что все асинхронные операции завершены
-
     expect(router.navigate).toHaveBeenCalledWith(['/submission-confirmation']);
-  }));
+  });
 });
