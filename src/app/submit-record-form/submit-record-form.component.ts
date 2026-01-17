@@ -29,6 +29,9 @@ export class SubmitRecordFormComponent {
     private recaptcha: RecaptchaService,
   ) {
     this.recordForm = this.fb.group({
+      fullName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern(/^\+?[0-9\s().-]{7,}$/)]],
       title: ['', [Validators.required, Validators.minLength(2)]],
       artist: ['', [Validators.required, Validators.minLength(2)]],
       genre: ['', [Validators.required, Validators.minLength(2)]],
@@ -108,6 +111,9 @@ export class SubmitRecordFormComponent {
     }
 
     const formData = new FormData();
+    formData.append('fullName', this.recordForm.value.fullName);
+    formData.append('email', this.recordForm.value.email);
+    formData.append('phone', this.recordForm.value.phone);
     formData.append('title', this.recordForm.value.title);
     formData.append('artist', this.recordForm.value.artist);
     formData.append('genre', this.recordForm.value.genre);

@@ -24,3 +24,5 @@
 - Backend serves the built frontend and handles `/upload`.
 - Backend config lives in `.env` (see `.env.example`).
 - Nginx should allow uploads via `client_max_body_size` (see `ops/nginx.conf`).
+- Email is sent via AWS SES SMTP (set `SES_SMTP_*`, `SES_FROM`, `SES_TO`).
+- CORS and rate limits are controlled by `ALLOWED_ORIGINS`, `RATE_LIMIT_*`.

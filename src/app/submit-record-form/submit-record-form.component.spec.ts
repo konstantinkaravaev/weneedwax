@@ -88,6 +88,9 @@ describe('SubmitRecordFormComponent', () => {
   it('should not submit the form if it is invalid', () => {
     const form = component.recordForm;
     form.setValue({
+      fullName: '',
+      email: '',
+      phone: '',
       title: '',
       artist: '',
       genre: '',
@@ -107,6 +110,9 @@ describe('SubmitRecordFormComponent', () => {
     const form = component.recordForm;
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
+      fullName: 'Test Name',
+      email: 'test@example.com',
+      phone: '+1 555 123 4567',
       title: 'Test Title',
       artist: 'Test Artist',
       genre: 'Test Genre',
@@ -128,6 +134,9 @@ describe('SubmitRecordFormComponent', () => {
     const form = component.recordForm;
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
+      fullName: 'Test Name',
+      email: 'test@example.com',
+      phone: '+1 555 123 4567',
       title: 'Test Title',
       artist: 'Test Artist',
       genre: 'Test Genre',
@@ -147,6 +156,9 @@ describe('SubmitRecordFormComponent', () => {
     const form = component.recordForm;
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     form.setValue({
+      fullName: 'Test Name',
+      email: 'test@example.com',
+      phone: '+1 555 123 4567',
       title: 'Test Title',
       artist: 'Test Artist',
       genre: 'Test Genre',

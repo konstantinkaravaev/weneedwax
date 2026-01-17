@@ -5,6 +5,10 @@ const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
+const crypto = require("crypto");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const { z } = require("zod");
 const nodemailer = require("nodemailer");
 
 const app = express();
@@ -32,6 +36,21 @@ const mailTransport = sesHost && sesUser && sesPass
 const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY || "";
 const recaptchaMinScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
 const maxFileSizeMb = Number(process.env.MAX_UPLOAD_MB || 10);
+const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000);
+const rateLimitMax = Number(process.env.RATE_LIMIT_MAX || 20);
+const allowedOriginsEnv = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const defaultAllowedOrigins = [
+  "https://weneedwax.com",
+  "https://www.weneedwax.com",
+  "https://konstantinkaravaev.github.io",
+  "http://localhost:4200"
+];
+const allowedOrigins =
+  allowedOriginsEnv.length > 0 ? allowedOriginsEnv : defaultAllowedOrigins;
+const isProduction = process.env.NODE_ENV === "production";
 
 // Paths
 const distDir = path.join(__dirname, "..", "dist", "weneedwax");
@@ -43,23 +62,29 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 app.set("trust proxy", 1);
+app.use(
+  helmet({
+    contentSecurityPolicy: false
+  })
+);
 
 // CORS settings
 app.use(
   cors({
-    origin: [
-      "https://weneedwax.com",
-      "http://weneedwax.com",
-      "https://www.weneedwax.com",
-      "http://www.weneedwax.com",
-      "https://konstantinkaravaev.github.io",
-      "http://localhost:4200",
-    ],
-  }),
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("CORS_NOT_ALLOWED"));
+    }
+  })
 );
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
 // Serve static files (Angular build)
 app.use(express.static(distDir));
@@ -70,27 +95,38 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const ext = path.extname(safeName).toLowerCase();
+    const unique = crypto.randomUUID();
+    cb(null, `${Date.now()}-${unique}${ext}`);
   },
 });
 const upload = multer({
   storage,
   limits: { fileSize: maxFileSizeMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "image/heic",
-      "image/heif"
-    ];
-
-    if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error("INVALID_FILE_TYPE"));
-    }
-
     return cb(null, true);
   }
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: rateLimitWindowMs,
+  max: rateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const uploadSchema = z.object({
+  fullName: z.string().min(2).max(120),
+  email: z.string().email(),
+  phone: z.string().min(7).max(30),
+  title: z.string().min(2).max(120),
+  artist: z.string().min(2).max(120),
+  genre: z.string().min(2).max(120),
+  year: z.string().regex(/^\d{4}$/),
+  condition: z.string().min(2).max(120),
+  price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  recaptchaToken: z.string().min(10)
 });
 
 async function verifyRecaptcha(token, remoteIp) {
@@ -150,17 +186,39 @@ async function verifyRecaptcha(token, remoteIp) {
 }
 
 // Handle form data uploads
-app.post("/upload", upload.single("file"), async (req, res) => {
-  console.log("Received form data:", req.body);
-
+app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "File is required" });
   }
 
-  const recaptchaToken = req.body.recaptchaToken;
-  if (!recaptchaToken) {
-    return res.status(400).json({ message: "Missing reCAPTCHA token" });
+  try {
+    const { fileTypeFromFile } = await import("file-type");
+    const detectedType = await fileTypeFromFile(req.file.path);
+    const allowedTypes = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif"
+    ]);
+    if (!detectedType || !allowedTypes.has(detectedType.mime)) {
+      await fs.promises.unlink(req.file.path).catch(() => {});
+      return res.status(400).json({ message: "Only image files are allowed" });
+    }
+  } catch (error) {
+    console.error("File inspection error:", error);
+    return res.status(400).json({ message: "Invalid file upload" });
   }
+  if (isProduction && !recaptchaSecretKey) {
+    return res.status(500).json({ message: "reCAPTCHA is not configured" });
+  }
+
+  const parsed = uploadSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid form data" });
+  }
+
+  const { recaptchaToken } = parsed.data;
 
   try {
     const verification = await verifyRecaptcha(recaptchaToken, req.ip);
@@ -173,14 +231,18 @@ app.post("/upload", upload.single("file"), async (req, res) => {
   }
 
   const newFormData = {
-    title: req.body.title,
-    artist: req.body.artist,
-    genre: req.body.genre,
-    year: req.body.year,
-    condition: req.body.condition,
-    price: req.body.price,
+    fullName: parsed.data.fullName,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+    title: parsed.data.title,
+    artist: parsed.data.artist,
+    genre: parsed.data.genre,
+    year: parsed.data.year,
+    condition: parsed.data.condition,
+    price: parsed.data.price,
     uploadedAt: new Date().toISOString(),
     file: req.file ? req.file.filename : null,
+    fileOriginalName: req.file ? req.file.originalname : null
   };
 
   const formsFilePath = path.join(uploadDir, "forms.json");
@@ -237,12 +299,15 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       html: `
         <h2>New Submission</h2>
         <table style="border-collapse: collapse; width: 100%;">
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.title}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Artist</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.artist}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Year</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.year}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Genre</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.genre}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Condition</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.condition}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Price</td><td style="border: 1px solid #ddd; padding: 8px;">${req.body.price}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Full name</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.fullName}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Email</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.email}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Phone</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.phone}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.title}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Artist</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.artist}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Year</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.year}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Genre</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.genre}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Condition</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.condition}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Price</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.price}</td></tr>
         </table>
       `
     });
@@ -256,12 +321,11 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  if (err && err.message === "INVALID_FILE_TYPE") {
-    return res.status(400).json({ message: "Only image files are allowed" });
-  }
-
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message });
+  }
+  if (err && err.message === "CORS_NOT_ALLOWED") {
+    return res.status(403).json({ message: "CORS blocked" });
   }
 
   console.error("Unexpected server error:", err);

@@ -2,12 +2,71 @@
   <a routerLink="/">Back Home</a>
 </nav>
 
+<p class="form-note">We reply within 24-48 hours.</p>
+
 <form
   [formGroup]="recordForm"
   (ngSubmit)="onSubmit()"
   class="record-form"
   enctype="multipart/form-data"
 >
+  <!-- Contact Name -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      recordForm.get('fullName')?.invalid &&
+      (recordForm.get('fullName')?.dirty || recordForm.get('fullName')?.touched)
+    "
+  >
+    <mat-label>Full name</mat-label>
+    <input matInput formControlName="fullName" placeholder="Alex Johnson" />
+    <mat-hint>Example: Alex Johnson.</mat-hint>
+    <mat-error *ngIf="recordForm.get('fullName')?.errors?.['required']">
+      Name is required
+    </mat-error>
+    <mat-error *ngIf="recordForm.get('fullName')?.errors?.['minlength']">
+      Name must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Contact Email -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      recordForm.get('email')?.invalid &&
+      (recordForm.get('email')?.dirty || recordForm.get('email')?.touched)
+    "
+  >
+    <mat-label>Email</mat-label>
+    <input matInput type="email" formControlName="email" placeholder="alex@email.com" />
+    <mat-hint>Example: alex&#64;email.com.</mat-hint>
+    <mat-error *ngIf="recordForm.get('email')?.errors?.['required']">
+      Email is required
+    </mat-error>
+    <mat-error *ngIf="recordForm.get('email')?.errors?.['email']">
+      Enter a valid email address
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Contact Phone -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      recordForm.get('phone')?.invalid &&
+      (recordForm.get('phone')?.dirty || recordForm.get('phone')?.touched)
+    "
+  >
+    <mat-label>Phone</mat-label>
+    <input matInput type="tel" formControlName="phone" placeholder="+1 416 555 1234" />
+    <mat-hint>Example: +1 416 555 1234.</mat-hint>
+    <mat-error *ngIf="recordForm.get('phone')?.errors?.['required']">
+      Phone is required
+    </mat-error>
+    <mat-error *ngIf="recordForm.get('phone')?.errors?.['pattern']">
+      Enter a valid phone number
+    </mat-error>
+  </mat-form-field>
+
   <!-- Title -->
   <mat-form-field
     class="record-form-field"
@@ -18,6 +77,7 @@
   >
     <mat-label>Title</mat-label>
     <input matInput formControlName="title" />
+    <mat-hint>Example: Kind of Blue.</mat-hint>
     <mat-error *ngIf="recordForm.get('title')?.errors?.['required']">
       Title is required
     </mat-error>
@@ -36,6 +96,7 @@
   >
     <mat-label>Artist</mat-label>
     <input matInput formControlName="artist" />
+    <mat-hint>Example: Miles Davis.</mat-hint>
     <mat-error *ngIf="recordForm.get('artist')?.errors?.['required']">
       Artist is required
     </mat-error>
@@ -54,6 +115,7 @@
   >
     <mat-label>Genre</mat-label>
     <input matInput formControlName="genre" />
+    <mat-hint>Example: Jazz.</mat-hint>
     <mat-error *ngIf="recordForm.get('genre')?.errors?.['required']">
       Genre is required
     </mat-error>
@@ -72,6 +134,7 @@
   >
     <mat-label>Year</mat-label>
     <input matInput formControlName="year" />
+    <mat-hint>4 digits. Example: 1984.</mat-hint>
     <mat-error *ngIf="recordForm.get('year')?.errors?.['required']">
       Year is required
     </mat-error>
@@ -91,6 +154,7 @@
   >
     <mat-label>Condition</mat-label>
     <input matInput formControlName="condition" />
+    <mat-hint>Example: Mint, VG+, Good.</mat-hint>
     <mat-error *ngIf="recordForm.get('condition')?.errors?.['required']">
       Condition is required
     </mat-error>
@@ -109,6 +173,8 @@
   >
     <mat-label>Price</mat-label>
     <input matInput formControlName="price" />
+    <span matSuffix>CAD</span>
+    <mat-hint>Numbers only. Example: 120 or 120.50.</mat-hint>
     <mat-error *ngIf="recordForm.get('price')?.errors?.['required']">
       Price is required
     </mat-error>
@@ -120,6 +186,9 @@
   <!-- Image Upload -->
   <div class="record-form-field">
     <label for="file">Upload record photo (HEIC, JPEG, PNG)</label><br />
+    <div class="hint-text">
+      Max file size: 10 MB. Clear photo of the front and back is ideal.
+    </div>
     <input
       type="file"
       id="file"
