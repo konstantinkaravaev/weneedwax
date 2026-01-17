@@ -23,3 +23,4 @@
 - Frontend build output goes to `dist/weneedwax`.
 - Backend serves the built frontend and handles `/upload`.
 - Backend config lives in `.env` (see `.env.example`).
+- Nginx should allow uploads via `client_max_body_size` (see `ops/nginx.conf`).

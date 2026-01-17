@@ -17,7 +17,7 @@ const resendTo = (process.env.RESEND_TO || "hey@weneedwax.com")
   .filter(Boolean);
 const recaptchaSecretKey = process.env.RECAPTCHA_SECRET_KEY || "";
 const recaptchaMinScore = Number(process.env.RECAPTCHA_MIN_SCORE || 0.5);
-const maxFileSizeMb = Number(process.env.MAX_UPLOAD_MB || 5);
+const maxFileSizeMb = Number(process.env.MAX_UPLOAD_MB || 10);
 
 // Paths
 const distDir = path.join(__dirname, "..", "dist", "weneedwax");
