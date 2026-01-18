@@ -351,16 +351,20 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
       attachments: attachment,
       html: `
         <h2>New Submission</h2>
+        <h3>What they are offering</h3>
         <table style="border-collapse: collapse; width: 100%;">
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Full name</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.fullName}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Email</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.email}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Phone</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.phone}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.title}</td></tr>
           <tr><td style="border: 1px solid #ddd; padding: 8px;">Artist</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.artist}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.title}</td></tr>
           <tr><td style="border: 1px solid #ddd; padding: 8px;">Year</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.year}</td></tr>
           <tr><td style="border: 1px solid #ddd; padding: 8px;">Genre</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.genre}</td></tr>
           <tr><td style="border: 1px solid #ddd; padding: 8px;">Condition</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.condition}</td></tr>
           <tr><td style="border: 1px solid #ddd; padding: 8px;">Price</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.price}</td></tr>
+        </table>
+        <h3>How to reach them</h3>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Full name</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.fullName}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Email</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.email}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Phone</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.phone}</td></tr>
         </table>
       `
     });
