@@ -35,6 +35,11 @@
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "styles": {
+                  "inlineCritical": false
+                }
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -56,6 +61,11 @@
               "outputHashing": "all"
             },
             "ghpages": {
+              "optimization": {
+                "styles": {
+                  "inlineCritical": false
+                }
+              },
               "baseHref": "/weneedwax/",
               "deployUrl": "/weneedwax/",
               "budgets": [

@@ -22,8 +22,6 @@
     "@angular/platform-browser": "^17.2.2",
     "@angular/platform-browser-dynamic": "^17.2.2",
     "@angular/router": "^17.2.2",
-    "browser-image-compression": "^2.0.2",
-    "heic2any": "^0.0.4",
     "libphonenumber-js": "^1.10.11",
     "ngx-mat-intl-tel-input": "^5.0.0",
     "normalize.css": "^8.0.1",

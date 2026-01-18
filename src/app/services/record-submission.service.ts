@@ -72,27 +72,7 @@ export class RecordSubmissionService {
   }
 
   async processFile(file: File): Promise<File> {
-    const imageCompression = (await import('browser-image-compression')).default;
-    const heic2any = (await import('heic2any')).default;
-
-    if (
-      file.type === 'image/heic' ||
-      file.name.toLowerCase().endsWith('.heic')
-    ) {
-      const convertedBlob = await heic2any({
-        blob: file,
-        toType: 'image/jpeg',
-      });
-      file = new File([convertedBlob as Blob], file.name.replace(/\.heic$/, '.jpg'), {
-        type: 'image/jpeg',
-      });
-    }
-
-    return imageCompression(file, {
-      maxSizeMB: 0.5,
-      maxWidthOrHeight: 1024,
-      useWebWorker: false,
-    });
+    return file;
   }
 
   setSelectedFile(file: File | null) {

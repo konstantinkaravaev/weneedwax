@@ -207,16 +207,19 @@ export class SubmitRecordContactComponent implements OnInit {
       phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
       return;
     }
-    const parsed = parsePhoneNumberFromString(
-      rawValue,
-      this.selectedCountryIso
-        ? (this.selectedCountryIso.toUpperCase() as CountryCode)
-        : undefined
-    );
-    if (!parsed?.isPossible()) {
+    const numberInstance = this.phoneInput?.numberInstance;
+    let isPossible = numberInstance?.isPossible() ?? false;
+    if (!isPossible) {
+      const parsed = parsePhoneNumberFromString(
+        rawValue,
+        this.selectedCountryIso
+          ? (this.selectedCountryIso.toUpperCase() as CountryCode)
+          : undefined
+      );
+      isPossible = parsed?.isPossible() ?? false;
+    }
+    if (!isPossible) {
       nextErrors['phoneInvalid'] = true;
-    } else if (parsed.number && phoneControl.value !== parsed.number) {
-      phoneControl.setValue(parsed.number, { emitEvent: false });
     }
     phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
   }

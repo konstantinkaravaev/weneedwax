@@ -10,6 +10,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const { z } = require("zod");
 const nodemailer = require("nodemailer");
+const sharp = require("sharp");
 
 const app = express();
 
@@ -74,11 +75,10 @@ app.use(
         formAction: ["'self'"],
         scriptSrc: [
           "'self'",
-          ...(isProduction ? [] : ["'unsafe-eval'"]),
           "https://www.google.com",
           "https://www.gstatic.com"
         ],
-        scriptSrcAttr: ["'unsafe-inline'"],
+        scriptSrcAttr: ["'none'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         styleSrcAttr: ["'unsafe-inline'"],
         styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -289,6 +289,55 @@ async function safeUnlink(filePath) {
   }
 }
 
+async function compressUploadedImage(file, detectedMime) {
+  const inputPath = file.path;
+  const parsedPath = path.parse(inputPath);
+  const originalExt = path.extname(file.originalname);
+  const baseOriginalName = path.basename(file.originalname, originalExt);
+  let outputExt = parsedPath.ext || "";
+  let outputMime = detectedMime;
+  let pipeline = sharp(inputPath);
+
+  switch (detectedMime) {
+    case "image/png":
+      outputExt = ".png";
+      outputMime = "image/png";
+      pipeline = pipeline.png({ compressionLevel: 9, adaptiveFiltering: true });
+      break;
+    case "image/jpeg":
+      outputExt = ".jpg";
+      outputMime = "image/jpeg";
+      pipeline = pipeline.jpeg({ quality: 80, mozjpeg: true });
+      break;
+    case "image/webp":
+    case "image/heic":
+    case "image/heif":
+      outputExt = ".jpg";
+      outputMime = "image/jpeg";
+      pipeline = pipeline.jpeg({ quality: 80, mozjpeg: true });
+      break;
+    default:
+      return { file, outputMime: detectedMime };
+  }
+
+  const outputFileName = `${parsedPath.name}-compressed${outputExt}`;
+  const outputPath = path.join(parsedPath.dir, outputFileName);
+
+  await pipeline.toFile(outputPath);
+  await safeUnlink(inputPath);
+
+  return {
+    file: {
+      ...file,
+      path: outputPath,
+      filename: outputFileName,
+      mimetype: outputMime,
+      originalname: `${baseOriginalName}${outputExt}`
+    },
+    outputMime
+  };
+}
+
 let formsWriteQueue = Promise.resolve();
 async function appendFormSubmission(entry, formsFilePath) {
   formsWriteQueue = formsWriteQueue.then(async () => {
@@ -326,9 +375,10 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     return res.status(400).json({ message: "File is required" });
   }
 
+  let detectedType;
   try {
     const { fileTypeFromFile } = await import("file-type");
-    const detectedType = await fileTypeFromFile(req.file.path);
+    detectedType = await fileTypeFromFile(req.file.path);
     const allowedTypes = new Set([
       "image/jpeg",
       "image/png",
@@ -374,6 +424,15 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
       await safeUnlink(req.file.path);
       return res.status(502).json({ message: "reCAPTCHA verification failed" });
     }
+  }
+
+  try {
+    const compressed = await compressUploadedImage(req.file, detectedType?.mime);
+    req.file = compressed.file;
+  } catch (error) {
+    console.error("Image compression error:", error);
+    await safeUnlink(req.file.path);
+    return res.status(500).json({ message: "Image compression failed" });
   }
 
   const newFormData = {
