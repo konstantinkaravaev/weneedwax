@@ -213,7 +213,7 @@ export class SubmitRecordContactComponent implements OnInit {
         ? (this.selectedCountryIso.toUpperCase() as CountryCode)
         : undefined
     );
-    if (!parsed?.isPossible() || !parsed.isValid()) {
+    if (!parsed?.isPossible()) {
       nextErrors['phoneInvalid'] = true;
     } else if (parsed.number && phoneControl.value !== parsed.number) {
       phoneControl.setValue(parsed.number, { emitEvent: false });
