@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -15,13 +15,15 @@ import { RecordSubmissionService } from '../services/record-submission.service';
   templateUrl: './submit-record-contact.component.html',
   styleUrls: ['./submit-record-contact.component.scss'],
 })
-export class SubmitRecordContactComponent implements OnInit {
+export class SubmitRecordContactComponent implements OnInit, AfterViewInit {
   contactForm!: FormGroup;
   isSubmitting = false;
   submitError: string | null = null;
   preferredCountries = ['ca', 'us'];
   selectedCountryIso = 'ca';
   @ViewChild(NgxMatIntlTelInputComponent) phoneInput?: NgxMatIntlTelInputComponent;
+  @ViewChild(NgxMatIntlTelInputComponent, { read: ElementRef })
+  phoneInputHost?: ElementRef<HTMLElement>;
   private readonly isLocalEnv =
     !environment.production &&
     typeof window !== 'undefined' &&
@@ -42,6 +44,7 @@ export class SubmitRecordContactComponent implements OnInit {
     private ngZone: NgZone,
     private recaptcha: RecaptchaService,
     private submission: RecordSubmissionService,
+    private renderer: Renderer2,
   ) {
     this.contactForm = this.submission.contactForm;
   }
@@ -57,6 +60,10 @@ export class SubmitRecordContactComponent implements OnInit {
       this.validatePhoneControl();
     });
     this.validatePhoneControl();
+  }
+
+  ngAfterViewInit() {
+    this.ensurePhoneInputFocusBehavior();
   }
 
   onBack() {
@@ -133,6 +140,9 @@ export class SubmitRecordContactComponent implements OnInit {
     if (this.getFieldValue(field).length < this.minHintLength) {
       this.hintVisible[field] = true;
     }
+    if (field === 'phone') {
+      this.focusPhoneInput();
+    }
   }
 
   onFieldInput(field: string, value: string) {
@@ -189,6 +199,7 @@ export class SubmitRecordContactComponent implements OnInit {
 
   onCountryChanged(country: { iso2?: string } | null) {
     this.selectedCountryIso = country?.iso2 || this.selectedCountryIso;
+    this.ensurePhoneInputFocusBehavior();
     this.validatePhoneControl();
   }
 
@@ -252,6 +263,25 @@ export class SubmitRecordContactComponent implements OnInit {
   private getPhoneInputValue(): string {
     const raw = this.phoneInput?.phoneNumber ?? this.phoneInput?.value ?? '';
     return String(raw || '').trim();
+  }
+
+  private ensurePhoneInputFocusBehavior() {
+    if (!this.phoneInputHost?.nativeElement) {
+      return;
+    }
+    const host = this.phoneInputHost.nativeElement;
+    const selectorButton = host.querySelector<HTMLButtonElement>('.country-selector');
+    if (selectorButton) {
+      this.renderer.setAttribute(selectorButton, 'tabindex', '-1');
+    }
+  }
+
+  private focusPhoneInput() {
+    if (!this.phoneInputHost?.nativeElement) {
+      return;
+    }
+    const input = this.phoneInputHost.nativeElement.querySelector<HTMLInputElement>('input[type="tel"]');
+    input?.focus();
   }
 
   private shouldShowHint(field: string): boolean {
