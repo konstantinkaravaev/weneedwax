@@ -26,11 +26,12 @@ export class SubmitRecordContactComponent implements OnInit {
 
   private hintTimers: Record<string, ReturnType<typeof setTimeout> | null> = {};
   private hintVisible: Record<string, boolean> = {};
+  private focusedField: string | null = null;
   private readonly minHintLength = 3;
   private readonly hintDelays: Record<string, number> = {
-    fullName: 7000,
-    email: 7000,
-    phone: 7000,
+    fullName: 1500,
+    email: 1500,
+    phone: 1500,
   };
 
   constructor(
@@ -120,6 +121,7 @@ export class SubmitRecordContactComponent implements OnInit {
   onFieldFocus(field: string) {
     const delay = this.hintDelays[field] ?? 7000;
     this.hideHint(field);
+    this.focusedField = field;
     this.scheduleHint(field, delay);
   }
 
@@ -131,13 +133,15 @@ export class SubmitRecordContactComponent implements OnInit {
 
   onFieldBlur(field: string) {
     this.clearHint(field);
-    if (this.shouldShowHint(field)) {
-      this.hintVisible[field] = true;
-    }
+    this.focusedField = null;
   }
 
   isHintVisible(field: string): boolean {
     return Boolean(this.hintVisible[field]);
+  }
+
+  isFieldFocused(field: string): boolean {
+    return this.focusedField === field;
   }
 
   private scheduleHint(field: string, delayMs: number) {

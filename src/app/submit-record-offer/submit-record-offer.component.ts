@@ -17,15 +17,16 @@ export class SubmitRecordOfferComponent {
 
   private hintTimers: Record<string, ReturnType<typeof setTimeout> | null> = {};
   private hintVisible: Record<string, boolean> = {};
+  private focusedField: string | null = null;
   private readonly minHintLength = 3;
   private readonly hintDelays: Record<string, number> = {
-    title: 5000,
-    artist: 5000,
-    genre: 5000,
-    condition: 5000,
-    year: 5000,
-    price: 5000,
-    file: 5000,
+    title: 1500,
+    artist: 1500,
+    genre: 1500,
+    condition: 1500,
+    year: 1500,
+    price: 1500,
+    file: 1500,
   };
 
   constructor(
@@ -83,6 +84,7 @@ export class SubmitRecordOfferComponent {
   onFieldFocus(field: string) {
     const delay = this.hintDelays[field] ?? 7000;
     this.hideHint(field);
+    this.focusedField = field;
     this.scheduleHint(field, delay);
   }
 
@@ -94,13 +96,15 @@ export class SubmitRecordOfferComponent {
 
   onFieldBlur(field: string) {
     this.clearHint(field);
-    if (this.shouldShowHint(field)) {
-      this.hintVisible[field] = true;
-    }
+    this.focusedField = null;
   }
 
   isHintVisible(field: string): boolean {
     return Boolean(this.hintVisible[field]);
+  }
+
+  isFieldFocused(field: string): boolean {
+    return this.focusedField === field;
   }
 
   private scheduleHint(field: string, delayMs: number) {

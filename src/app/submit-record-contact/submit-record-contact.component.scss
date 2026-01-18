@@ -33,6 +33,12 @@
   font-size: 12px;
 }
 
+.hint-text {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  margin: 2px 0 4px;
+}
+
 ::ng-deep ngx-mat-intl-tel-input {
   display: flex;
   align-items: center;
@@ -40,6 +46,40 @@
 }
 
 ::ng-deep ngx-mat-intl-tel-input input {
-  width: 100%;
+  width: 0;
   font: inherit;
+  padding-left: 0 !important;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+::ng-deep ngx-mat-intl-tel-input .ngx-mat-tel-input-container .country-selector {
+  opacity: 1;
+  position: relative !important;
+  width: auto !important;
+  min-width: 0 !important;
+  padding: 0 6px 0 0 !important;
+  background-image: none !important;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+::ng-deep ngx-mat-intl-tel-input .ngx-mat-tel-input-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+::ng-deep ngx-mat-intl-tel-input .country-selector-flag {
+  margin-right: 4px;
+}
+
+::ng-deep ngx-mat-intl-tel-input .country-selector-code {
+  margin-right: 6px;
+}
+
+::ng-deep ngx-mat-intl-tel-input .country-selector {
+  min-width: 0 !important;
 }
