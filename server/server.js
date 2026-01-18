@@ -65,7 +65,17 @@ if (!fs.existsSync(uploadDir)) {
 app.set("trust proxy", 1);
 app.use(
   helmet({
-    contentSecurityPolicy: false
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'", "https://www.google.com"],
+        frameSrc: ["https://www.google.com"],
+        fontSrc: ["'self'", "data:"]
+      }
+    }
   })
 );
 
@@ -106,6 +116,9 @@ const upload = multer({
   storage,
   limits: { fileSize: maxFileSizeMb * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
+    if (!file.mimetype || !file.mimetype.startsWith("image/")) {
+      return cb(new multer.MulterError("LIMIT_UNEXPECTED_FILE"));
+    }
     return cb(null, true);
   }
 });
@@ -186,6 +199,50 @@ async function verifyRecaptcha(token, remoteIp) {
   return { ok: true, score };
 }
 
+async function safeUnlink(filePath) {
+  if (!filePath) {
+    return;
+  }
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (error) {
+    if (error && error.code !== "ENOENT") {
+      console.error("Failed to delete file:", error);
+    }
+  }
+}
+
+let formsWriteQueue = Promise.resolve();
+async function appendFormSubmission(entry, formsFilePath) {
+  formsWriteQueue = formsWriteQueue.then(async () => {
+    let formsArray = [];
+    try {
+      if (fs.existsSync(formsFilePath)) {
+        const fileData = await fs.promises.readFile(formsFilePath, "utf-8");
+        formsArray = JSON.parse(fileData);
+        if (!Array.isArray(formsArray)) {
+          formsArray = [];
+        }
+      }
+    } catch (error) {
+      console.error("Error reading forms.json:", error);
+      formsArray = [];
+    }
+
+    formsArray.push(entry);
+
+    const tempPath = `${formsFilePath}.tmp`;
+    await fs.promises.writeFile(
+      tempPath,
+      JSON.stringify(formsArray, null, 2)
+    );
+    await fs.promises.rename(tempPath, formsFilePath);
+  });
+  const writePromise = formsWriteQueue;
+  formsWriteQueue = formsWriteQueue.catch(() => {});
+  return writePromise;
+}
+
 // Handle form data uploads
 app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
   if (!req.file) {
@@ -202,20 +259,23 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
       "image/heic",
       "image/heif"
     ]);
-    if (!detectedType || !allowedTypes.has(detectedType.mime)) {
-      await fs.promises.unlink(req.file.path).catch(() => {});
+  if (!detectedType || !allowedTypes.has(detectedType.mime)) {
+      await safeUnlink(req.file.path);
       return res.status(400).json({ message: "Only image files are allowed" });
     }
   } catch (error) {
     console.error("File inspection error:", error);
+    await safeUnlink(req.file.path);
     return res.status(400).json({ message: "Invalid file upload" });
   }
   if (isProduction && !recaptchaSecretKey) {
+    await safeUnlink(req.file.path);
     return res.status(500).json({ message: "reCAPTCHA is not configured" });
   }
 
   const parsed = uploadSchema.safeParse(req.body);
   if (!parsed.success) {
+    await safeUnlink(req.file.path);
     return res.status(400).json({ message: "Invalid form data" });
   }
 
@@ -225,10 +285,12 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     try {
       const verification = await verifyRecaptcha(recaptchaToken, req.ip);
       if (!verification.ok) {
+        await safeUnlink(req.file.path);
         return res.status(403).json({ message: "reCAPTCHA failed" });
       }
     } catch (error) {
       console.error("reCAPTCHA verify error:", error);
+      await safeUnlink(req.file.path);
       return res.status(502).json({ message: "reCAPTCHA verification failed" });
     }
   }
@@ -249,39 +311,24 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
   };
 
   const formsFilePath = path.join(uploadDir, "forms.json");
-  let formsArray = [];
-
   try {
-    if (fs.existsSync(formsFilePath)) {
-      const fileData = await fs.promises.readFile(formsFilePath, "utf-8");
-      formsArray = JSON.parse(fileData);
-    }
-  } catch (error) {
-    console.error("Error reading forms.json:", error);
-  }
-
-  formsArray.push(newFormData);
-
-  try {
-    const tempPath = `${formsFilePath}.tmp`;
-    await fs.promises.writeFile(
-      tempPath,
-      JSON.stringify(formsArray, null, 2)
-    );
-    await fs.promises.rename(tempPath, formsFilePath);
+    await appendFormSubmission(newFormData, formsFilePath);
     console.log("Form data saved to forms.json");
   } catch (error) {
     console.error("Error writing to forms.json:", error);
+    await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Failed to save form data" });
   }
 
   if (!mailTransport && !isLocalDev) {
     console.error("Missing SES SMTP configuration");
+    await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Email service not configured" });
   }
 
   if (mailTo.length === 0 && !isLocalDev) {
     console.error("Missing SES_TO");
+    await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Email recipients not configured" });
   }
 
@@ -320,6 +367,7 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     console.log("Email notification sent successfully");
   } catch (emailError) {
     console.error("Error sending email:", emailError);
+    await safeUnlink(req.file.path);
     return res.status(502).json({ message: "Email sending failed" });
   }
 
