@@ -119,6 +119,7 @@ export class SubmitRecordContactComponent implements OnInit {
 
   onFieldFocus(field: string) {
     const delay = this.hintDelays[field] ?? 7000;
+    this.hideHint(field);
     this.scheduleHint(field, delay);
   }
 

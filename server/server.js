@@ -75,7 +75,7 @@ app.use(
         connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         frameSrc: ["https://www.google.com"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        workerSrc: ["'self'"]
+        workerSrc: ["'self'", "blob:"]
       }
     }
   })
