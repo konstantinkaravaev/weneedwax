@@ -10,9 +10,18 @@ echo "Building frontend..."
 npm run build
 
 echo "Copying files to server..."
-scp -r dist/ $USER@$HOST:$REMOTE_DIR/
-scp -r server/ $USER@$HOST:$REMOTE_DIR/
-scp -r ops/ $USER@$HOST:$REMOTE_DIR/
+rsync -az --delete \
+  --exclude ".DS_Store" \
+  --exclude "dist/**/*.map" \
+  dist/ $USER@$HOST:$REMOTE_DIR/dist/
+rsync -az \
+  --exclude "node_modules" \
+  --exclude "uploads" \
+  --exclude ".DS_Store" \
+  server/ $USER@$HOST:$REMOTE_DIR/server/
+rsync -az \
+  --exclude ".DS_Store" \
+  ops/ $USER@$HOST:$REMOTE_DIR/ops/
 
 echo "Installing dependencies and restarting server..."
 ssh -tt $USER@$HOST << 'ENDSSH'
