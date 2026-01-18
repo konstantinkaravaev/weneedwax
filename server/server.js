@@ -68,7 +68,13 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-eval'",
+          "https://www.google.com",
+          "https://www.gstatic.com",
+          "https://cdn.jsdelivr.net"
+        ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
