@@ -78,7 +78,10 @@ app.use(
           "https://www.google.com",
           "https://www.gstatic.com"
         ],
+        scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        styleSrcAttr: ["'unsafe-inline'"],
+        styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
         connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         frameSrc: ["https://www.google.com"],
