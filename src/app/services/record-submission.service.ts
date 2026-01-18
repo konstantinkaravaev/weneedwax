@@ -107,7 +107,7 @@ export class RecordSubmissionService {
 
     formData.append('fullName', String(contact.fullName || '').trim());
     formData.append('email', String(contact.email || '').trim());
-    const phoneValue = String(contact.phone || '').trim();
+    const phoneValue = normalizePhoneInput(contact.phone);
     const formattedPhone = formatPhoneNumber(phoneValue, phoneCountryIso);
     formData.append('phone', formattedPhone);
     formData.append('title', String(offer.title || '').trim());
@@ -208,6 +208,31 @@ function conditionValidator() {
     }
     return null;
   };
+}
+
+function normalizePhoneInput(value: unknown): string {
+  if (!value) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+  if (typeof value === 'object') {
+    const candidate = value as {
+      internationalNumber?: string;
+      number?: string;
+      nationalNumber?: string;
+      e164Number?: string;
+    };
+    const preferred =
+      candidate.internationalNumber ||
+      candidate.number ||
+      candidate.e164Number ||
+      candidate.nationalNumber ||
+      '';
+    return String(preferred).trim();
+  }
+  return String(value).trim();
 }
 
 function formatPhoneNumber(value: string, countryIso?: string | null): string {

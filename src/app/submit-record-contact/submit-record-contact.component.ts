@@ -195,7 +195,7 @@ export class SubmitRecordContactComponent implements OnInit {
     if (!phoneControl) {
       return;
     }
-    const rawValue = String(phoneControl.value || '').trim();
+    const rawValue = this.getPhoneValue(phoneControl.value);
     const nextErrors = { ...(phoneControl.errors || {}) };
     delete nextErrors['validatePhoneNumber'];
     delete nextErrors['phoneInvalid'];
@@ -215,6 +215,31 @@ export class SubmitRecordContactComponent implements OnInit {
       nextErrors['phoneInvalid'] = true;
     }
     phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
+  }
+
+  private getPhoneValue(value: unknown): string {
+    if (!value) {
+      return '';
+    }
+    if (typeof value === 'string') {
+      return value.trim();
+    }
+    if (typeof value === 'object') {
+      const candidate = value as {
+        internationalNumber?: string;
+        number?: string;
+        nationalNumber?: string;
+        e164Number?: string;
+      };
+      const preferred =
+        candidate.internationalNumber ||
+        candidate.number ||
+        candidate.e164Number ||
+        candidate.nationalNumber ||
+        '';
+      return String(preferred).trim();
+    }
+    return String(value).trim();
   }
 
   private shouldShowHint(field: string): boolean {
