@@ -25,10 +25,10 @@
     <mat-hint *ngIf="isHintVisible('fullName')">
       Use your real name so we can contact you.
     </mat-hint>
-    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('fullName') && contactForm.get('fullName')?.errors?.['required']">
       Name is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['trimmedMinLength']">
+    <mat-error *ngIf="!isFieldFocused('fullName') && contactForm.get('fullName')?.errors?.['trimmedMinLength']">
       Name must be at least 2 characters
     </mat-error>
   </mat-form-field>
@@ -51,47 +51,50 @@
       (input)="onFieldInput('email', $any($event.target).value)"
       (blur)="onFieldBlur('email')"
     />
-    <mat-hint *ngIf="isHintVisible('email')">
-      We will reply to this address (example: alex&#64;email.com).
-    </mat-hint>
-    <mat-error *ngIf="contactForm.get('email')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('email') && contactForm.get('email')?.errors?.['required']">
       Email is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('email')?.errors?.['pattern']">
+    <mat-error *ngIf="!isFieldFocused('email') && contactForm.get('email')?.errors?.['pattern']">
       Enter a valid email address
     </mat-error>
   </mat-form-field>
+  <div class="hint-text" *ngIf="isFieldFocused('email') && isHintVisible('email')">
+    We will reply to this address (example: alex&#64;email.com).
+  </div>
 
   <!-- Contact Phone -->
   <mat-form-field
     class="record-form-field"
+    floatLabel="always"
+    (focusin)="onFieldFocus('phone')"
+    (focusout)="onFieldBlur('phone')"
     [class.mat-form-field-invalid]="
       contactForm.get('phone')?.invalid &&
       (contactForm.get('phone')?.dirty || contactForm.get('phone')?.touched)
     "
   >
-    <mat-label>Phone</mat-label>
-    <ngx-mat-intl-tel-input
-      formControlName="phone"
-      [preferredCountries]="preferredCountries"
-      [enablePlaceholder]="true"
-      [enableSearch]="true"
-      [cssClass]="'mat-input-element'"
-      name="phone"
-      (countryChanged)="onCountryChanged($event)"
-      (focus)="onFieldFocus('phone')"
-      (blur)="onFieldBlur('phone')"
-    ></ngx-mat-intl-tel-input>
-    <mat-hint *ngIf="isHintVisible('phone')">
-      Include country code if possible.
-    </mat-hint>
-    <mat-error *ngIf="contactForm.get('phone')?.errors?.['required']">
+      <mat-label>Phone</mat-label>
+      <ngx-mat-intl-tel-input
+        formControlName="phone"
+        [preferredCountries]="preferredCountries"
+        [enablePlaceholder]="false"
+        [enableSearch]="true"
+        [format]="'international'"
+        [cssClass]="'mat-input-element'"
+        name="phone"
+        [placeholder]="' '"
+        (countryChanged)="onCountryChanged($event)"
+      ></ngx-mat-intl-tel-input>
+    <mat-error *ngIf="!isFieldFocused('phone') && contactForm.get('phone')?.errors?.['required']">
       Phone is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('phone')?.errors?.['validatePhoneNumber']">
+    <mat-error *ngIf="!isFieldFocused('phone') && contactForm.get('phone')?.errors?.['validatePhoneNumber']">
       Enter a valid phone number for the selected country
     </mat-error>
   </mat-form-field>
+  <div class="hint-text" *ngIf="isFieldFocused('phone') && isHintVisible('phone')">
+    Include country code if possible.
+  </div>
 
   <!-- Actions -->
   <div class="submit-row">

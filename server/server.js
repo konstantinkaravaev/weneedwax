@@ -68,7 +68,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
+        scriptSrc: ["'self'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com"],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
@@ -132,8 +132,7 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false
 });
 
-const emailRegex =
-  /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const e164Regex = /^\+[1-9]\d{1,14}$/;
 const priceRegex = /^\d+(\.\d{1,2})?$/;
 const minYear = 1900;

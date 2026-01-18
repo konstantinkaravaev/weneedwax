@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 
-const EMAIL_REGEX =
-  /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PRICE_REGEX = /^\d+(\.\d{1,2})?$/;
 const MIN_YEAR = 1900;
 const MAX_PRICE = 100000;

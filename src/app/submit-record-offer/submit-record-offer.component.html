@@ -26,10 +26,10 @@
       (blur)="onFieldBlur('artist')"
     />
     <mat-hint *ngIf="isHintVisible('artist')">Example: Miles Davis.</mat-hint>
-    <mat-error *ngIf="offerForm.get('artist')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('artist') && offerForm.get('artist')?.errors?.['required']">
       Artist is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('artist')?.errors?.['trimmedMinLength']">
+    <mat-error *ngIf="!isFieldFocused('artist') && offerForm.get('artist')?.errors?.['trimmedMinLength']">
       Artist must be at least 2 characters
     </mat-error>
   </mat-form-field>
@@ -51,10 +51,10 @@
       (blur)="onFieldBlur('title')"
     />
     <mat-hint *ngIf="isHintVisible('title')">Example: Kind of Blue.</mat-hint>
-    <mat-error *ngIf="offerForm.get('title')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('title') && offerForm.get('title')?.errors?.['required']">
       Title is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('title')?.errors?.['trimmedMinLength']">
+    <mat-error *ngIf="!isFieldFocused('title') && offerForm.get('title')?.errors?.['trimmedMinLength']">
       Title must be at least 2 characters
     </mat-error>
   </mat-form-field>
@@ -79,10 +79,10 @@
       </mat-option>
     </mat-select>
     <mat-hint *ngIf="isHintVisible('genre')">Example: Jazz.</mat-hint>
-    <mat-error *ngIf="offerForm.get('genre')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('genre') && offerForm.get('genre')?.errors?.['required']">
       Genre is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('genre')?.errors?.['genreInvalid']">
+    <mat-error *ngIf="!isFieldFocused('genre') && offerForm.get('genre')?.errors?.['genreInvalid']">
       Choose a genre from the list
     </mat-error>
   </mat-form-field>
@@ -104,10 +104,10 @@
       (blur)="onFieldBlur('year')"
     />
     <mat-hint *ngIf="isHintVisible('year')">Year between 1900 and today.</mat-hint>
-    <mat-error *ngIf="offerForm.get('year')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('year') && offerForm.get('year')?.errors?.['required']">
       Year is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('year')?.errors?.['yearRange']">
+    <mat-error *ngIf="!isFieldFocused('year') && offerForm.get('year')?.errors?.['yearRange']">
       Year must be between 1900 and the current year
     </mat-error>
   </mat-form-field>
@@ -132,10 +132,10 @@
     <mat-hint *ngIf="isHintVisible('condition')">
       Example: Mint, VG+, Good.
     </mat-hint>
-    <mat-error *ngIf="offerForm.get('condition')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('condition') && offerForm.get('condition')?.errors?.['required']">
       Condition is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('condition')?.errors?.['trimmedMinLength']">
+    <mat-error *ngIf="!isFieldFocused('condition') && offerForm.get('condition')?.errors?.['trimmedMinLength']">
       Condition must be at least 2 characters
     </mat-error>
   </mat-form-field>
@@ -160,13 +160,13 @@
     <mat-hint *ngIf="isHintVisible('price')">
       Numbers only. Example: 120 or 120.50.
     </mat-hint>
-    <mat-error *ngIf="offerForm.get('price')?.errors?.['required']">
+    <mat-error *ngIf="!isFieldFocused('price') && offerForm.get('price')?.errors?.['required']">
       Price is required
     </mat-error>
-    <mat-error *ngIf="offerForm.get('price')?.errors?.['pattern']">
+    <mat-error *ngIf="!isFieldFocused('price') && offerForm.get('price')?.errors?.['pattern']">
       Use a valid number (e.g. 10 or 10.50)
     </mat-error>
-    <mat-error *ngIf="offerForm.get('price')?.errors?.['priceRange']">
+    <mat-error *ngIf="!isFieldFocused('price') && offerForm.get('price')?.errors?.['priceRange']">
       Price must be between 1 and 100000
     </mat-error>
   </mat-form-field>
