@@ -6,6 +6,11 @@ USER="ec2-user"
 HOST="18.119.128.246"
 REMOTE_DIR="/home/ec2-user/weneedwax"
 
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+  nvm use 18 >/dev/null
+fi
+
 echo "Building frontend..."
 npm run build
 
