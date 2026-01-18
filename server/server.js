@@ -141,7 +141,7 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false
 });
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const e164Regex = /^\+[1-9]\d{1,14}$/;
 const priceRegex = /^\d+(\.\d{1,2})?$/;
 const minYear = 1900;
@@ -163,6 +163,16 @@ const genreOptions = [
   "Soul",
   "Techno"
 ];
+const conditionOptions = [
+  "Mint (M)",
+  "Near Mint (NM)",
+  "Very Good Plus (VG+)",
+  "Very Good (VG)",
+  "Good Plus (G+)",
+  "Good (G)",
+  "Fair (F)",
+  "Poor (P)"
+];
 
 const uploadSchema = z.object({
   fullName: z.string().trim().min(2).max(120),
@@ -183,7 +193,10 @@ const uploadSchema = z.object({
       const maxYear = new Date().getFullYear();
       return year >= minYear && year <= maxYear;
     }, "Invalid year"),
-  condition: z.string().trim().min(2).max(120),
+  condition: z
+    .string()
+    .trim()
+    .refine((value) => conditionOptions.includes(value), "Invalid condition"),
   price: z
     .string()
     .trim()

@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
+import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 
 import { environment } from '../../environments/environment';
 import { RecaptchaService } from '../services/recaptcha.service';
@@ -33,7 +34,6 @@ export class SubmitRecordContactComponent implements OnInit {
     email: 1500,
     phone: 1500,
   };
-
   constructor(
     private http: HttpClient,
     private router: Router,
@@ -50,6 +50,11 @@ export class SubmitRecordContactComponent implements OnInit {
         console.error('Navigation Error', err);
       });
     }
+    const phoneControl = this.contactForm.get('phone');
+    phoneControl?.valueChanges.subscribe(() => {
+      this.validatePhoneControl();
+    });
+    this.validatePhoneControl();
   }
 
   onBack() {
@@ -123,17 +128,27 @@ export class SubmitRecordContactComponent implements OnInit {
     this.hideHint(field);
     this.focusedField = field;
     this.scheduleHint(field, delay);
+    if (this.getFieldValue(field).length < this.minHintLength) {
+      this.hintVisible[field] = true;
+    }
   }
 
   onFieldInput(field: string, value: string) {
     if (value.length >= this.minHintLength) {
       this.hideHint(field);
     }
+    if (field === 'email') {
+      this.contactForm.get('email')?.markAsTouched();
+    }
   }
 
   onFieldBlur(field: string) {
     this.clearHint(field);
     this.focusedField = null;
+    if (field === 'phone') {
+      this.contactForm.get('phone')?.markAsTouched();
+      this.validatePhoneControl();
+    }
   }
 
   isHintVisible(field: string): boolean {
@@ -172,6 +187,34 @@ export class SubmitRecordContactComponent implements OnInit {
 
   onCountryChanged(country: { iso2?: string } | null) {
     this.selectedCountryIso = country?.iso2 || this.selectedCountryIso;
+    this.validatePhoneControl();
+  }
+
+  private validatePhoneControl() {
+    const phoneControl = this.contactForm.get('phone');
+    if (!phoneControl) {
+      return;
+    }
+    const rawValue = String(phoneControl.value || '').trim();
+    const nextErrors = { ...(phoneControl.errors || {}) };
+    delete nextErrors['validatePhoneNumber'];
+    delete nextErrors['phoneInvalid'];
+    delete nextErrors['required'];
+    if (!rawValue) {
+      nextErrors['required'] = true;
+      phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
+      return;
+    }
+    const parsed = parsePhoneNumberFromString(
+      rawValue,
+      this.selectedCountryIso
+        ? (this.selectedCountryIso.toUpperCase() as CountryCode)
+        : undefined
+    );
+    if (!parsed?.isPossible() || !parsed.isValid()) {
+      nextErrors['phoneInvalid'] = true;
+    }
+    phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
   }
 
   private shouldShowHint(field: string): boolean {

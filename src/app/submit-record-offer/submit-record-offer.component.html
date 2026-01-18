@@ -122,21 +122,24 @@
     "
   >
     <mat-label>Condition</mat-label>
-    <input
-      matInput
+    <mat-select
       formControlName="condition"
       (focus)="onFieldFocus('condition')"
-      (input)="onFieldInput('condition', $any($event.target).value)"
+      (selectionChange)="onFieldInput('condition', $any($event.value))"
       (blur)="onFieldBlur('condition')"
-    />
+    >
+      <mat-option *ngFor="let condition of conditionOptions" [value]="condition">
+        {{ condition }}
+      </mat-option>
+    </mat-select>
     <mat-hint *ngIf="isHintVisible('condition')">
-      Example: Mint, VG+, Good.
+      Choose the closest grading label.
     </mat-hint>
     <mat-error *ngIf="!isFieldFocused('condition') && offerForm.get('condition')?.errors?.['required']">
       Condition is required
     </mat-error>
-    <mat-error *ngIf="!isFieldFocused('condition') && offerForm.get('condition')?.errors?.['trimmedMinLength']">
-      Condition must be at least 2 characters
+    <mat-error *ngIf="!isFieldFocused('condition') && offerForm.get('condition')?.errors?.['conditionInvalid']">
+      Choose a condition from the list
     </mat-error>
   </mat-form-field>
 

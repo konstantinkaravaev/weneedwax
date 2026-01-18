@@ -19,6 +19,13 @@
 
 .submit-button {
   margin-top: 20px;
+  background-color: #673ab7 !important;
+  color: #ffffff !important;
+}
+
+.submit-button:disabled {
+  background-color: #e0e0e0 !important;
+  color: rgba(0, 0, 0, 0.38) !important;
 }
 
 .submit-row {

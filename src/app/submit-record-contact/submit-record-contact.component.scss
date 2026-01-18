@@ -19,6 +19,13 @@
 
 .submit-button {
   margin-top: 20px;
+  background-color: #673ab7 !important;
+  color: #ffffff !important;
+}
+
+.submit-button:disabled {
+  background-color: #e0e0e0 !important;
+  color: rgba(0, 0, 0, 0.38) !important;
 }
 
 .submit-row {
@@ -33,10 +40,16 @@
   font-size: 12px;
 }
 
+.hint-slot {
+  height: 16px;
+}
+
 .hint-text {
   color: rgba(0, 0, 0, 0.6);
-  font-size: 12px;
-  margin: 2px 0 4px;
+  font-size: 11px;
+  line-height: 16px;
+  margin: 0;
+  display: block;
 }
 
 ::ng-deep ngx-mat-intl-tel-input {
@@ -77,7 +90,7 @@
 }
 
 ::ng-deep ngx-mat-intl-tel-input .country-selector-code {
-  margin-right: 6px;
+  display: inline-flex;
 }
 
 ::ng-deep ngx-mat-intl-tel-input .country-selector {

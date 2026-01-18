@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PRICE_REGEX = /^\d+(\.\d{1,2})?$/;
 const MIN_YEAR = 1900;
 const MAX_PRICE = 100000;
@@ -25,12 +25,24 @@ const GENRE_OPTIONS = [
   'Techno'
 ] as const;
 
+const CONDITION_OPTIONS = [
+  'Mint (M)',
+  'Near Mint (NM)',
+  'Very Good Plus (VG+)',
+  'Very Good (VG)',
+  'Good Plus (G+)',
+  'Good (G)',
+  'Fair (F)',
+  'Poor (P)'
+] as const;
+
 @Injectable({ providedIn: 'root' })
 export class RecordSubmissionService {
   readonly offerForm: FormGroup;
   readonly contactForm: FormGroup;
   selectedFile: File | null = null;
   readonly genreOptions = GENRE_OPTIONS;
+  readonly conditionOptions = CONDITION_OPTIONS;
 
   constructor(private fb: FormBuilder) {
     this.offerForm = this.fb.group({
@@ -38,7 +50,7 @@ export class RecordSubmissionService {
       artist: ['', [Validators.required, trimmedMinLength(2)]],
       genre: ['', [Validators.required, genreValidator()]],
       year: ['', [Validators.required, yearValidator()]],
-      condition: ['', [Validators.required, trimmedMinLength(2)]],
+      condition: ['', [Validators.required, conditionValidator()]],
       price: [
         '',
         [Validators.required, Validators.pattern(PRICE_REGEX), priceValidator()],
@@ -48,7 +60,10 @@ export class RecordSubmissionService {
 
     this.contactForm = this.fb.group({
       fullName: ['', [Validators.required, trimmedMinLength(2)]],
-      email: ['', [Validators.required, Validators.pattern(EMAIL_REGEX)]],
+      email: [
+        '',
+        [Validators.required, Validators.pattern(EMAIL_REGEX), asciiEmailValidator()],
+      ],
       phone: [
         '',
         [Validators.required],
@@ -167,6 +182,29 @@ function genreValidator() {
     const value = String(control.value || '').trim();
     if (!value || !GENRE_OPTIONS.includes(value as (typeof GENRE_OPTIONS)[number])) {
       return { genreInvalid: true };
+    }
+    return null;
+  };
+}
+
+function asciiEmailValidator() {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value || '');
+    if (!value) {
+      return null;
+    }
+    if (!/^[\x00-\x7F]+$/.test(value)) {
+      return { emailAscii: true };
+    }
+    return null;
+  };
+}
+
+function conditionValidator() {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value || '').trim();
+    if (!value || !CONDITION_OPTIONS.includes(value as (typeof CONDITION_OPTIONS)[number])) {
+      return { conditionInvalid: true };
     }
     return null;
   };

@@ -44,6 +44,10 @@ export class SubmitRecordOfferComponent {
     return this.submission.genreOptions;
   }
 
+  get conditionOptions(): readonly string[] {
+    return this.submission.conditionOptions;
+  }
+
   async onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     this.fileError = null;

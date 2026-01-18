@@ -54,12 +54,17 @@
     <mat-error *ngIf="!isFieldFocused('email') && contactForm.get('email')?.errors?.['required']">
       Email is required
     </mat-error>
+    <mat-error *ngIf="!isFieldFocused('email') && contactForm.get('email')?.errors?.['emailAscii']">
+      Use English letters only
+    </mat-error>
     <mat-error *ngIf="!isFieldFocused('email') && contactForm.get('email')?.errors?.['pattern']">
       Enter a valid email address
     </mat-error>
   </mat-form-field>
-  <div class="hint-text" *ngIf="isFieldFocused('email') && isHintVisible('email')">
-    We will reply to this address (example: alex&#64;email.com).
+  <div class="hint-slot">
+    <span class="hint-text" *ngIf="isFieldFocused('email') && isHintVisible('email')">
+      Example: alex&#64;email.com
+    </span>
   </div>
 
   <!-- Contact Phone -->
@@ -79,7 +84,7 @@
         [preferredCountries]="preferredCountries"
         [enablePlaceholder]="false"
         [enableSearch]="true"
-        [format]="'international'"
+        [format]="'national'"
         [cssClass]="'mat-input-element'"
         name="phone"
         [placeholder]="' '"
@@ -88,12 +93,14 @@
     <mat-error *ngIf="!isFieldFocused('phone') && contactForm.get('phone')?.errors?.['required']">
       Phone is required
     </mat-error>
-    <mat-error *ngIf="!isFieldFocused('phone') && contactForm.get('phone')?.errors?.['validatePhoneNumber']">
+    <mat-error *ngIf="!isFieldFocused('phone') && contactForm.get('phone')?.errors?.['phoneInvalid']">
       Enter a valid phone number for the selected country
     </mat-error>
   </mat-form-field>
-  <div class="hint-text" *ngIf="isFieldFocused('phone') && isHintVisible('phone')">
-    Include country code if possible.
+  <div class="hint-slot">
+    <span class="hint-text" *ngIf="isFieldFocused('phone') && isHintVisible('phone')">
+      Example: (416) 555-1234
+    </span>
   </div>
 
   <!-- Actions -->
