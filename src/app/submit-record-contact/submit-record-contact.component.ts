@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgZone } from '@angular/core';
 import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js';
+import { NgxMatIntlTelInputComponent } from 'ngx-mat-intl-tel-input';
 
 import { environment } from '../../environments/environment';
 import { RecaptchaService } from '../services/recaptcha.service';
@@ -20,6 +21,7 @@ export class SubmitRecordContactComponent implements OnInit {
   submitError: string | null = null;
   preferredCountries = ['ca', 'us'];
   selectedCountryIso = 'ca';
+  @ViewChild(NgxMatIntlTelInputComponent) phoneInput?: NgxMatIntlTelInputComponent;
   private readonly isLocalEnv =
     !environment.production &&
     typeof window !== 'undefined' &&
@@ -213,13 +215,15 @@ export class SubmitRecordContactComponent implements OnInit {
     );
     if (!parsed?.isPossible() || !parsed.isValid()) {
       nextErrors['phoneInvalid'] = true;
+    } else if (parsed.number && phoneControl.value !== parsed.number) {
+      phoneControl.setValue(parsed.number, { emitEvent: false });
     }
     phoneControl.setErrors(Object.keys(nextErrors).length ? nextErrors : null);
   }
 
   private getPhoneValue(value: unknown): string {
     if (!value) {
-      return '';
+      return this.getPhoneInputValue();
     }
     if (typeof value === 'string') {
       return value.trim();
@@ -239,7 +243,12 @@ export class SubmitRecordContactComponent implements OnInit {
         '';
       return String(preferred).trim();
     }
-    return String(value).trim();
+    return String(value).trim() || this.getPhoneInputValue();
+  }
+
+  private getPhoneInputValue(): string {
+    const raw = this.phoneInput?.phoneNumber ?? this.phoneInput?.value ?? '';
+    return String(raw || '').trim();
   }
 
   private shouldShowHint(field: string): boolean {
