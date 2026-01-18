@@ -39,6 +39,10 @@ export class SubmitRecordOfferComponent {
     return this.submission.selectedFile;
   }
 
+  get genreOptions(): readonly string[] {
+    return this.submission.genreOptions;
+  }
+
   async onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     this.fileError = null;
@@ -89,6 +93,9 @@ export class SubmitRecordOfferComponent {
 
   onFieldBlur(field: string) {
     this.clearHint(field);
+    if (this.shouldShowHint(field)) {
+      this.hintVisible[field] = true;
+    }
   }
 
   isHintVisible(field: string): boolean {
@@ -122,5 +129,10 @@ export class SubmitRecordOfferComponent {
       return this.selectedFile ? 'file' : '';
     }
     return String(this.offerForm.get(field)?.value || '');
+  }
+
+  private shouldShowHint(field: string): boolean {
+    const value = this.getFieldValue(field);
+    return value.length < this.minHintLength;
   }
 }

@@ -68,20 +68,14 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: [
-          "'self'",
-          "'unsafe-eval'",
-          "https://www.google.com",
-          "https://www.gstatic.com",
-          "https://cdn.jsdelivr.net"
-        ],
+        scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
         connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         frameSrc: ["https://www.google.com"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        workerSrc: ["'self'", "blob:"]
+        workerSrc: ["'self'"]
       }
     }
   })
@@ -138,16 +132,58 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false
 });
 
+const emailRegex =
+  /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+const e164Regex = /^\+[1-9]\d{1,14}$/;
+const priceRegex = /^\d+(\.\d{1,2})?$/;
+const minYear = 1900;
+const maxPrice = 100000;
+const genreOptions = [
+  "Ambient",
+  "Blues",
+  "Classical",
+  "Disco",
+  "Electronic",
+  "Funk",
+  "House",
+  "Hip-Hop",
+  "Jazz",
+  "Pop",
+  "R&B",
+  "Reggae",
+  "Rock",
+  "Soul",
+  "Techno"
+];
+
 const uploadSchema = z.object({
-  fullName: z.string().min(2).max(120),
-  email: z.string().email(),
-  phone: z.string().min(7).max(30),
-  title: z.string().min(2).max(120),
-  artist: z.string().min(2).max(120),
-  genre: z.string().min(2).max(120),
-  year: z.string().regex(/^\d{4}$/),
-  condition: z.string().min(2).max(120),
-  price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+  fullName: z.string().trim().min(2).max(120),
+  email: z.string().trim().regex(emailRegex),
+  phone: z.string().trim().regex(e164Regex),
+  title: z.string().trim().min(2).max(120),
+  artist: z.string().trim().min(2).max(120),
+  genre: z
+    .string()
+    .trim()
+    .refine((value) => genreOptions.includes(value), "Invalid genre"),
+  year: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/)
+    .refine((value) => {
+      const year = Number(value);
+      const maxYear = new Date().getFullYear();
+      return year >= minYear && year <= maxYear;
+    }, "Invalid year"),
+  condition: z.string().trim().min(2).max(120),
+  price: z
+    .string()
+    .trim()
+    .regex(priceRegex)
+    .refine((value) => {
+      const price = Number(value);
+      return Number.isFinite(price) && price > 0 && price <= maxPrice;
+    }, "Invalid price"),
   recaptchaToken: z.string().min(10)
 });
 
@@ -205,6 +241,15 @@ async function verifyRecaptcha(token, remoteIp) {
   }
 
   return { ok: true, score };
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 async function safeUnlink(filePath) {
@@ -283,8 +328,12 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
 
   const parsed = uploadSchema.safeParse(req.body);
   if (!parsed.success) {
+    console.warn("Invalid form data:", parsed.error.flatten());
     await safeUnlink(req.file.path);
-    return res.status(400).json({ message: "Invalid form data" });
+    return res.status(400).json({
+      message: "Invalid form data",
+      errors: parsed.error.flatten().fieldErrors
+    });
   }
 
   const { recaptchaToken } = parsed.data;
@@ -344,6 +393,17 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     if (isLocalDev) {
       return res.status(200).json({ message: "Upload successful (local mode)" });
     }
+    const emailData = {
+      fullName: escapeHtml(parsed.data.fullName),
+      email: escapeHtml(parsed.data.email),
+      phone: escapeHtml(parsed.data.phone),
+      title: escapeHtml(parsed.data.title),
+      artist: escapeHtml(parsed.data.artist),
+      year: escapeHtml(parsed.data.year),
+      genre: escapeHtml(parsed.data.genre),
+      condition: escapeHtml(parsed.data.condition),
+      price: escapeHtml(parsed.data.price)
+    };
     const attachment = req.file
       ? [{
           filename: req.file.originalname,
@@ -361,18 +421,18 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
         <h2>New Submission</h2>
         <h3>What they are offering</h3>
         <table style="border-collapse: collapse; width: 100%;">
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Artist</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.artist}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.title}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Year</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.year}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Genre</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.genre}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Condition</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.condition}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Price</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.price}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Artist</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.artist}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Title</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.title}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Year</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.year}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Genre</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.genre}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Condition</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.condition}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Price</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.price}</td></tr>
         </table>
         <h3>How to reach them</h3>
         <table style="border-collapse: collapse; width: 100%;">
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Full name</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.fullName}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Email</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.email}</td></tr>
-          <tr><td style="border: 1px solid #ddd; padding: 8px;">Phone</td><td style="border: 1px solid #ddd; padding: 8px;">${parsed.data.phone}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Full name</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.fullName}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Email</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.email}</td></tr>
+          <tr><td style="border: 1px solid #ddd; padding: 8px;">Phone</td><td style="border: 1px solid #ddd; padding: 8px;">${emailData.phone}</td></tr>
         </table>
       `
     });

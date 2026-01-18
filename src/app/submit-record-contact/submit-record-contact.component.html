@@ -28,7 +28,7 @@
     <mat-error *ngIf="contactForm.get('fullName')?.errors?.['required']">
       Name is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['minlength']">
+    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['trimmedMinLength']">
       Name must be at least 2 characters
     </mat-error>
   </mat-form-field>
@@ -57,7 +57,7 @@
     <mat-error *ngIf="contactForm.get('email')?.errors?.['required']">
       Email is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('email')?.errors?.['email']">
+    <mat-error *ngIf="contactForm.get('email')?.errors?.['pattern']">
       Enter a valid email address
     </mat-error>
   </mat-form-field>
@@ -71,23 +71,25 @@
     "
   >
     <mat-label>Phone</mat-label>
-    <input
-      matInput
-      type="tel"
+    <ngx-mat-intl-tel-input
       formControlName="phone"
-      placeholder="+1 416 555 1234"
+      [preferredCountries]="preferredCountries"
+      [enablePlaceholder]="true"
+      [enableSearch]="true"
+      [cssClass]="'mat-input-element'"
+      name="phone"
+      (countryChanged)="onCountryChanged($event)"
       (focus)="onFieldFocus('phone')"
-      (input)="onFieldInput('phone', $any($event.target).value)"
       (blur)="onFieldBlur('phone')"
-    />
+    ></ngx-mat-intl-tel-input>
     <mat-hint *ngIf="isHintVisible('phone')">
       Include country code if possible.
     </mat-hint>
     <mat-error *ngIf="contactForm.get('phone')?.errors?.['required']">
       Phone is required
     </mat-error>
-    <mat-error *ngIf="contactForm.get('phone')?.errors?.['pattern']">
-      Enter a valid phone number
+    <mat-error *ngIf="contactForm.get('phone')?.errors?.['validatePhoneNumber']">
+      Enter a valid phone number for the selected country
     </mat-error>
   </mat-form-field>
 

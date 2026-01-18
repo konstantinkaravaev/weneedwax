@@ -17,6 +17,8 @@ export class SubmitRecordContactComponent implements OnInit {
   contactForm!: FormGroup;
   isSubmitting = false;
   submitError: string | null = null;
+  preferredCountries = ['ca', 'us'];
+  selectedCountryIso = 'ca';
   private readonly isLocalEnv =
     !environment.production &&
     typeof window !== 'undefined' &&
@@ -86,7 +88,7 @@ export class SubmitRecordContactComponent implements OnInit {
 
     try {
       const token = await this.recaptcha.execute('submit');
-      const formData = this.submission.buildFormData(token);
+      const formData = this.submission.buildFormData(token, this.selectedCountryIso);
       const uploadUrl = environment.apiBaseUrl
         ? `${environment.apiBaseUrl}/upload`
         : '/upload';
@@ -128,6 +130,9 @@ export class SubmitRecordContactComponent implements OnInit {
 
   onFieldBlur(field: string) {
     this.clearHint(field);
+    if (this.shouldShowHint(field)) {
+      this.hintVisible[field] = true;
+    }
   }
 
   isHintVisible(field: string): boolean {
@@ -158,5 +163,14 @@ export class SubmitRecordContactComponent implements OnInit {
 
   private getFieldValue(field: string): string {
     return String(this.contactForm.get(field)?.value || '');
+  }
+
+  onCountryChanged(country: { iso2?: string } | null) {
+    this.selectedCountryIso = country?.iso2 || this.selectedCountryIso;
+  }
+
+  private shouldShowHint(field: string): boolean {
+    const value = this.getFieldValue(field);
+    return value.length < this.minHintLength;
   }
 }
