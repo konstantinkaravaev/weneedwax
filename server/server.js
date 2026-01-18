@@ -69,11 +69,13 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
-        connectSrc: ["'self'", "https://www.google.com"],
+        connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         frameSrc: ["https://www.google.com"],
-        fontSrc: ["'self'", "data:"]
+        fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+        workerSrc: ["'self'", "blob:"]
       }
     }
   })
