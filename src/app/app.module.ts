@@ -13,15 +13,17 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
-import { SubmitRecordFormComponent } from './submit-record-form/submit-record-form.component';
 import { SubmissionConfirmationComponent } from './submission-confirmation/submission-confirmation.component';
+import { SubmitRecordOfferComponent } from './submit-record-offer/submit-record-offer.component';
+import { SubmitRecordContactComponent } from './submit-record-contact/submit-record-contact.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    SubmitRecordFormComponent,
     HomeComponent,
     SubmissionConfirmationComponent,
+    SubmitRecordOfferComponent,
+    SubmitRecordContactComponent,
   ],
   imports: [
     BrowserModule,
@@ -35,7 +37,9 @@ import { SubmissionConfirmationComponent } from './submission-confirmation/submi
     HttpClientModule,
     RouterModule.forRoot([
       { path: '', component: HomeComponent },
-      { path: 'submit-record', component: SubmitRecordFormComponent },
+      { path: 'submit-record', redirectTo: 'submit-record/offer', pathMatch: 'full' },
+      { path: 'submit-record/offer', component: SubmitRecordOfferComponent },
+      { path: 'submit-record/contact', component: SubmitRecordContactComponent },
       {
         path: 'submission-confirmation',
         component: SubmissionConfirmationComponent,

@@ -1,0 +1,209 @@
+<nav>
+  <a routerLink="/">Back Home</a>
+</nav>
+
+<form
+  [formGroup]="offerForm"
+  class="record-form"
+  enctype="multipart/form-data"
+>
+  <h2 class="step-title">What are you offering?</h2>
+
+  <!-- Artist -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('artist')?.invalid &&
+      (offerForm.get('artist')?.dirty || offerForm.get('artist')?.touched)
+    "
+  >
+    <mat-label>Artist</mat-label>
+    <input
+      matInput
+      formControlName="artist"
+      (focus)="onFieldFocus('artist')"
+      (input)="onFieldInput('artist', $any($event.target).value)"
+      (blur)="onFieldBlur('artist')"
+    />
+    <mat-hint *ngIf="isHintVisible('artist')">Example: Miles Davis.</mat-hint>
+    <mat-error *ngIf="offerForm.get('artist')?.errors?.['required']">
+      Artist is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('artist')?.errors?.['minlength']">
+      Artist must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Title -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('title')?.invalid &&
+      (offerForm.get('title')?.dirty || offerForm.get('title')?.touched)
+    "
+  >
+    <mat-label>Title</mat-label>
+    <input
+      matInput
+      formControlName="title"
+      (focus)="onFieldFocus('title')"
+      (input)="onFieldInput('title', $any($event.target).value)"
+      (blur)="onFieldBlur('title')"
+    />
+    <mat-hint *ngIf="isHintVisible('title')">Example: Kind of Blue.</mat-hint>
+    <mat-error *ngIf="offerForm.get('title')?.errors?.['required']">
+      Title is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('title')?.errors?.['minlength']">
+      Title must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Genre -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('genre')?.invalid &&
+      (offerForm.get('genre')?.dirty || offerForm.get('genre')?.touched)
+    "
+  >
+    <mat-label>Genre</mat-label>
+    <input
+      matInput
+      formControlName="genre"
+      (focus)="onFieldFocus('genre')"
+      (input)="onFieldInput('genre', $any($event.target).value)"
+      (blur)="onFieldBlur('genre')"
+    />
+    <mat-hint *ngIf="isHintVisible('genre')">Example: Jazz.</mat-hint>
+    <mat-error *ngIf="offerForm.get('genre')?.errors?.['required']">
+      Genre is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('genre')?.errors?.['minlength']">
+      Genre must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Year -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('year')?.invalid &&
+      (offerForm.get('year')?.dirty || offerForm.get('year')?.touched)
+    "
+  >
+    <mat-label>Year</mat-label>
+    <input
+      matInput
+      formControlName="year"
+      (focus)="onFieldFocus('year')"
+      (input)="onFieldInput('year', $any($event.target).value)"
+      (blur)="onFieldBlur('year')"
+    />
+    <mat-hint *ngIf="isHintVisible('year')">4 digits. Example: 1984.</mat-hint>
+    <mat-error *ngIf="offerForm.get('year')?.errors?.['required']">
+      Year is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('year')?.errors?.['pattern']">
+      Year must be a valid number
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Condition -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('condition')?.invalid &&
+      (offerForm.get('condition')?.dirty ||
+        offerForm.get('condition')?.touched)
+    "
+  >
+    <mat-label>Condition</mat-label>
+    <input
+      matInput
+      formControlName="condition"
+      (focus)="onFieldFocus('condition')"
+      (input)="onFieldInput('condition', $any($event.target).value)"
+      (blur)="onFieldBlur('condition')"
+    />
+    <mat-hint *ngIf="isHintVisible('condition')">
+      Example: Mint, VG+, Good.
+    </mat-hint>
+    <mat-error *ngIf="offerForm.get('condition')?.errors?.['required']">
+      Condition is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('condition')?.errors?.['minlength']">
+      Condition must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Price -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      offerForm.get('price')?.invalid &&
+      (offerForm.get('price')?.dirty || offerForm.get('price')?.touched)
+    "
+  >
+    <mat-label>Price</mat-label>
+    <input
+      matInput
+      formControlName="price"
+      (focus)="onFieldFocus('price')"
+      (input)="onFieldInput('price', $any($event.target).value)"
+      (blur)="onFieldBlur('price')"
+    />
+    <span matSuffix>CAD</span>
+    <mat-hint *ngIf="isHintVisible('price')">
+      Numbers only. Example: 120 or 120.50.
+    </mat-hint>
+    <mat-error *ngIf="offerForm.get('price')?.errors?.['required']">
+      Price is required
+    </mat-error>
+    <mat-error *ngIf="offerForm.get('price')?.errors?.['pattern']">
+      Use a valid number (e.g. 10 or 10.50)
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Image Upload -->
+  <div class="record-form-field">
+    <label for="file">Upload record photo (HEIC, JPEG, PNG)</label><br />
+    <div class="hint-text" *ngIf="isHintVisible('file')">
+      Max file size: 10 MB. Clear photo of the front and back is ideal.
+    </div>
+    <input
+      type="file"
+      id="file"
+      (change)="onFileChange($event)"
+      (focus)="onFieldFocus('file')"
+      (blur)="onFieldBlur('file')"
+      #fileInput
+      accept="image/*"
+    />
+    <div *ngIf="isProcessingFile">Processing image...</div>
+    <div *ngIf="fileError" class="error-text">{{ fileError }}</div>
+    <div
+      *ngIf="
+        offerForm.get('file')?.invalid &&
+        (offerForm.get('file')?.dirty || offerForm.get('file')?.touched)
+      "
+      class="error-text"
+    >
+      Photo is required
+    </div>
+  </div>
+
+  <!-- Next -->
+  <div class="submit-row">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      [disabled]="isProcessingFile || offerForm.invalid || !selectedFile"
+      class="submit-button"
+      (click)="onNext()"
+    >
+      Next
+    </button>
+  </div>
+</form>

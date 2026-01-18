@@ -1,0 +1,126 @@
+<nav>
+  <a routerLink="/">Back Home</a>
+</nav>
+
+<form [formGroup]="contactForm" class="record-form">
+  <h2 class="step-title">How can we reach you?</h2>
+
+  <!-- Contact Name -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      contactForm.get('fullName')?.invalid &&
+      (contactForm.get('fullName')?.dirty || contactForm.get('fullName')?.touched)
+    "
+  >
+    <mat-label>Full name</mat-label>
+    <input
+      matInput
+      formControlName="fullName"
+      placeholder="Alex Johnson"
+      (focus)="onFieldFocus('fullName')"
+      (input)="onFieldInput('fullName', $any($event.target).value)"
+      (blur)="onFieldBlur('fullName')"
+    />
+    <mat-hint *ngIf="isHintVisible('fullName')">
+      Use your real name so we can contact you.
+    </mat-hint>
+    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['required']">
+      Name is required
+    </mat-error>
+    <mat-error *ngIf="contactForm.get('fullName')?.errors?.['minlength']">
+      Name must be at least 2 characters
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Contact Email -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      contactForm.get('email')?.invalid &&
+      (contactForm.get('email')?.dirty || contactForm.get('email')?.touched)
+    "
+  >
+    <mat-label>Email</mat-label>
+    <input
+      matInput
+      type="email"
+      formControlName="email"
+      placeholder="alex@email.com"
+      (focus)="onFieldFocus('email')"
+      (input)="onFieldInput('email', $any($event.target).value)"
+      (blur)="onFieldBlur('email')"
+    />
+    <mat-hint *ngIf="isHintVisible('email')">
+      We will reply to this address (example: alex&#64;email.com).
+    </mat-hint>
+    <mat-error *ngIf="contactForm.get('email')?.errors?.['required']">
+      Email is required
+    </mat-error>
+    <mat-error *ngIf="contactForm.get('email')?.errors?.['email']">
+      Enter a valid email address
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Contact Phone -->
+  <mat-form-field
+    class="record-form-field"
+    [class.mat-form-field-invalid]="
+      contactForm.get('phone')?.invalid &&
+      (contactForm.get('phone')?.dirty || contactForm.get('phone')?.touched)
+    "
+  >
+    <mat-label>Phone</mat-label>
+    <input
+      matInput
+      type="tel"
+      formControlName="phone"
+      placeholder="+1 416 555 1234"
+      (focus)="onFieldFocus('phone')"
+      (input)="onFieldInput('phone', $any($event.target).value)"
+      (blur)="onFieldBlur('phone')"
+    />
+    <mat-hint *ngIf="isHintVisible('phone')">
+      Include country code if possible.
+    </mat-hint>
+    <mat-error *ngIf="contactForm.get('phone')?.errors?.['required']">
+      Phone is required
+    </mat-error>
+    <mat-error *ngIf="contactForm.get('phone')?.errors?.['pattern']">
+      Enter a valid phone number
+    </mat-error>
+  </mat-form-field>
+
+  <!-- Actions -->
+  <div class="submit-row">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      class="submit-button"
+      (click)="onBack()"
+    >
+      Back
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      [disabled]="isSubmitting || contactForm.invalid"
+      class="submit-button"
+      (click)="onSubmit()"
+    >
+      <ng-container *ngIf="!isSubmitting; else submitting">
+        Submit
+      </ng-container>
+      <ng-template #submitting>
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="24"
+          strokeWidth="3"
+        ></mat-progress-spinner>
+      </ng-template>
+    </button>
+    <div *ngIf="submitError" class="error-text">{{ submitError }}</div>
+  </div>
+</form>

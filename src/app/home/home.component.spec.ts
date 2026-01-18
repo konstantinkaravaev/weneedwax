@@ -1,9 +1,12 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HomeComponent } from './home.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { SubmitRecordFormComponent } from '../submit-record-form/submit-record-form.component';
+
+@Component({ template: '' })
+class DummyComponent {}
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -12,10 +15,10 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HomeComponent],
+      declarations: [HomeComponent, DummyComponent],
       imports: [
         RouterTestingModule.withRoutes([
-          { path: 'submit-record', component: SubmitRecordFormComponent },
+          { path: 'submit-record/offer', component: DummyComponent },
         ]),
         MatButtonModule,
       ],
@@ -44,7 +47,7 @@ describe('HomeComponent', () => {
     button.click();
     fixture.whenStable().then(() => {
       fixture.detectChanges();
-      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record/offer']);
     });
   }));
 
@@ -59,7 +62,7 @@ describe('HomeComponent', () => {
     button.click();
     fixture.whenStable().then(() => {
       fixture.detectChanges();
-      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/submit-record/offer']);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Navigation Error',
         new Error('Navigation Error')

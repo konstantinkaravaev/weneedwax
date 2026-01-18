@@ -1,0 +1,34 @@
+.record-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 300px;
+  width: 100%;
+  margin: 0 auto;
+
+  .record-form-field {
+    width: 100%;
+  }
+}
+
+.step-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 6px 0 14px;
+}
+
+.submit-button {
+  margin-top: 20px;
+}
+
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.error-text {
+  color: #d32f2f;
+  font-size: 12px;
+}

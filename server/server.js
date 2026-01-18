@@ -51,6 +51,7 @@ const defaultAllowedOrigins = [
 const allowedOrigins =
   allowedOriginsEnv.length > 0 ? allowedOriginsEnv : defaultAllowedOrigins;
 const isProduction = process.env.NODE_ENV === "production";
+const isLocalDev = process.env.LOCAL_DEV_MODE === "true";
 
 // Paths
 const distDir = path.join(__dirname, "..", "dist", "weneedwax");
@@ -220,14 +221,16 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
 
   const { recaptchaToken } = parsed.data;
 
-  try {
-    const verification = await verifyRecaptcha(recaptchaToken, req.ip);
-    if (!verification.ok) {
-      return res.status(403).json({ message: "reCAPTCHA failed" });
+  if (!isLocalDev) {
+    try {
+      const verification = await verifyRecaptcha(recaptchaToken, req.ip);
+      if (!verification.ok) {
+        return res.status(403).json({ message: "reCAPTCHA failed" });
+      }
+    } catch (error) {
+      console.error("reCAPTCHA verify error:", error);
+      return res.status(502).json({ message: "reCAPTCHA verification failed" });
     }
-  } catch (error) {
-    console.error("reCAPTCHA verify error:", error);
-    return res.status(502).json({ message: "reCAPTCHA verification failed" });
   }
 
   const newFormData = {
@@ -272,17 +275,20 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     return res.status(500).json({ message: "Failed to save form data" });
   }
 
-  if (!mailTransport) {
+  if (!mailTransport && !isLocalDev) {
     console.error("Missing SES SMTP configuration");
     return res.status(500).json({ message: "Email service not configured" });
   }
 
-  if (mailTo.length === 0) {
+  if (mailTo.length === 0 && !isLocalDev) {
     console.error("Missing SES_TO");
     return res.status(500).json({ message: "Email recipients not configured" });
   }
 
   try {
+    if (isLocalDev) {
+      return res.status(200).json({ message: "Upload successful (local mode)" });
+    }
     const attachment = req.file
       ? [{
           filename: req.file.originalname,

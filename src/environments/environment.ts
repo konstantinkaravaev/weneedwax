@@ -4,9 +4,10 @@
 
 export const environment = {
   production: false,
-  apiBaseUrl: "http://localhost:3000",
-  recaptchaSiteKey: "6LcN9aEqAAAAAOAgXjA8lRV80ZbJLBcFO0FXaIPs",
-  recaptchaProvider: "v3"
+  apiBaseUrl: 'http://localhost:3000',
+  recaptchaSiteKey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+  recaptchaProvider: 'v3',
+  localMockSubmit: false,
 };
 
 /*

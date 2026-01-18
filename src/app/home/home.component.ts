@@ -12,7 +12,7 @@ export class HomeComponent {
   suggestRecords() {
     console.log('Suggest Your Records clicked');
     this.router
-      .navigate(['/submit-record'])
+      .navigate(['/submit-record/offer'])
       .catch((err) => console.error('Navigation Error', err));
   }
 }
