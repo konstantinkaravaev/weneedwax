@@ -75,7 +75,8 @@
     (focusout)="onFieldBlur('phone')"
     [class.mat-form-field-invalid]="
       contactForm.get('phone')?.invalid &&
-      (contactForm.get('phone')?.dirty || contactForm.get('phone')?.touched)
+      (contactForm.get('phone')?.dirty || contactForm.get('phone')?.touched) &&
+      !isFieldFocused('phone')
     "
   >
       <mat-label>Phone</mat-label>

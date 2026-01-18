@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js';
+import { CountryCode, getCountryCallingCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PRICE_REGEX = /^\d+(\.\d{1,2})?$/;
@@ -228,7 +228,18 @@ function formatPhoneNumber(value: string, countryIso?: string | null): string {
       return parsed.number;
     }
   } catch (error) {
-    return value;
+    // Fall through to best-effort formatting.
+  }
+  const digits = String(value).replace(/\D+/g, '');
+  if (String(value).trim().startsWith('+') && digits) {
+    return `+${digits}`;
+  }
+  if (countryIso) {
+    const callingCode = getCountryCallingCode(countryIso.toUpperCase() as CountryCode);
+    if (digits.startsWith(callingCode)) {
+      return `+${digits}`;
+    }
+    return `+${callingCode}${digits}`;
   }
   return value;
 }
