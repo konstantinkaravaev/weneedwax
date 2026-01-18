@@ -176,13 +176,13 @@
 
   <!-- Image Upload -->
   <div class="record-form-field">
-    <label for="file">Upload record photo (HEIC, JPEG, PNG)</label><br />
+    <label>Upload record photo (HEIC, JPEG, PNG)</label><br />
     <div class="hint-text" *ngIf="isHintVisible('file')">
       Max file size: 10 MB. Clear photo of the front and back is ideal.
     </div>
     <input
       type="file"
-      id="file"
+      aria-label="Upload record photo"
       (change)="onFileChange($event)"
       (focus)="onFieldFocus('file')"
       (blur)="onFieldBlur('file')"
