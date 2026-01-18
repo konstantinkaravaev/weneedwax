@@ -7,7 +7,7 @@ module.exports = {
       cwd: path.join(__dirname, ".."),
       script: "server/server.js",
       watch: false,
-      env_file: ".env",
+      env_file: "/home/ec2-user/weneedwax/.env",
       env: {
         NODE_ENV: "production"
       }
