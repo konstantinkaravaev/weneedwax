@@ -68,14 +68,23 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-eval'", "https://www.google.com", "https://www.gstatic.com"],
-        scriptSrcAttr: ["'unsafe-inline'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          ...(isProduction ? [] : ["'unsafe-eval'"]),
+          "https://www.google.com",
+          "https://www.gstatic.com"
+        ],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "blob:"],
         connectSrc: ["'self'", "https://www.google.com", "https://www.gstatic.com"],
         frameSrc: ["https://www.google.com"],
         fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
-        workerSrc: ["'self'", "blob:"]
+        workerSrc: ["'self'", "blob:"],
+        upgradeInsecureRequests: []
       }
     }
   })
