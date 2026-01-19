@@ -11,6 +11,9 @@ const rateLimit = require("express-rate-limit");
 const { z } = require("zod");
 const nodemailer = require("nodemailer");
 const sharp = require("sharp");
+const { PrismaClient, Prisma } = require("@prisma/client");
+
+const prisma = new PrismaClient();
 
 const app = express();
 
@@ -435,27 +438,24 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     return res.status(500).json({ message: "Image compression failed" });
   }
 
-  const newFormData = {
-    fullName: parsed.data.fullName,
-    email: parsed.data.email,
-    phone: parsed.data.phone,
-    title: parsed.data.title,
-    artist: parsed.data.artist,
-    genre: parsed.data.genre,
-    year: parsed.data.year,
-    condition: parsed.data.condition,
-    price: parsed.data.price,
-    uploadedAt: new Date().toISOString(),
-    file: req.file ? req.file.filename : null,
-    fileOriginalName: req.file ? req.file.originalname : null
-  };
-
-  const formsFilePath = path.join(uploadDir, "forms.json");
   try {
-    await appendFormSubmission(newFormData, formsFilePath);
-    console.log("Form data saved to forms.json");
+    await prisma.submission.create({
+      data: {
+        fullName: parsed.data.fullName,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+        title: parsed.data.title,
+        artist: parsed.data.artist,
+        genre: parsed.data.genre,
+        year: Number(parsed.data.year),
+        condition: parsed.data.condition,
+        price: new Prisma.Decimal(parsed.data.price),
+        fileName: req.file ? req.file.filename : null,
+        fileOriginalName: req.file ? req.file.originalname : null
+      }
+    });
   } catch (error) {
-    console.error("Error writing to forms.json:", error);
+    console.error("Database write failed:", error);
     await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Failed to save form data" });
   }

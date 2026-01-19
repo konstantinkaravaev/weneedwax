@@ -50,3 +50,11 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Server
+server/node_modules/
+server/.env
+
+# Server
+server/node_modules/
+server/.env
