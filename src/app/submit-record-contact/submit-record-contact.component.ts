@@ -103,7 +103,12 @@ export class SubmitRecordContactComponent implements OnInit, AfterViewInit {
 
     try {
       const token = await this.recaptcha.execute('submit');
-      const formData = this.submission.buildFormData(token, this.selectedCountryIso);
+      const phoneE164 = this.phoneInput?.numberInstance?.number || null;
+      const formData = this.submission.buildFormData(
+        token,
+        this.selectedCountryIso,
+        phoneE164
+      );
       const uploadUrl = environment.apiBaseUrl
         ? `${environment.apiBaseUrl}/upload`
         : '/upload';

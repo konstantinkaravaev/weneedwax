@@ -80,7 +80,11 @@ export class RecordSubmissionService {
     this.offerForm.get('file')?.setValue(file);
   }
 
-  buildFormData(recaptchaToken: string, phoneCountryIso?: string | null): FormData {
+  buildFormData(
+    recaptchaToken: string,
+    phoneCountryIso?: string | null,
+    phoneE164?: string | null
+  ): FormData {
     const formData = new FormData();
     const offer = this.offerForm.value;
     const contact = this.contactForm.value;
@@ -88,7 +92,7 @@ export class RecordSubmissionService {
     formData.append('fullName', String(contact.fullName || '').trim());
     formData.append('email', String(contact.email || '').trim());
     const phoneValue = normalizePhoneInput(contact.phone);
-    const formattedPhone = formatPhoneNumber(phoneValue, phoneCountryIso);
+    const formattedPhone = formatPhoneNumber(phoneValue, phoneCountryIso, phoneE164);
     formData.append('phone', formattedPhone);
     formData.append('title', String(offer.title || '').trim());
     formData.append('artist', String(offer.artist || '').trim());
@@ -215,7 +219,14 @@ function normalizePhoneInput(value: unknown): string {
   return String(value).trim();
 }
 
-function formatPhoneNumber(value: string, countryIso?: string | null): string {
+function formatPhoneNumber(
+  value: string,
+  countryIso?: string | null,
+  phoneE164?: string | null
+): string {
+  if (phoneE164 && /^\+[1-9]\d{1,14}$/.test(phoneE164)) {
+    return phoneE164;
+  }
   if (!value) {
     return '';
   }
