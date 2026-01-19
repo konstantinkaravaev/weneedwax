@@ -18,10 +18,9 @@
     "nodemailer": "^6.9.15",
     "@supabase/supabase-js": "^2.49.1",
     "@prisma/client": "^5.18.0",
+    "prisma": "^5.18.0",
     "sharp": "^0.33.5",
     "zod": "^3.23.8"
   },
-  "devDependencies": {
-    "prisma": "^5.18.0"
-  }
+  "devDependencies": {}
 }

@@ -32,6 +32,7 @@ echo "Installing dependencies and restarting server..."
 ssh -tt $USER@$HOST << 'ENDSSH'
   cd /home/ec2-user/weneedwax
   (cd server && npm install --production)
+  (cd server && npx prisma generate)
   pm2 startOrReload /home/ec2-user/weneedwax/ops/ecosystem.config.js
   pm2 save
 ENDSSH
