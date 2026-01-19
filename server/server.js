@@ -11,6 +11,7 @@ const rateLimit = require("express-rate-limit");
 const { z } = require("zod");
 const nodemailer = require("nodemailer");
 const sharp = require("sharp");
+const { execFile } = require("child_process");
 const { createClient } = require("@supabase/supabase-js");
 const { PrismaClient, Prisma } = require("@prisma/client");
 
@@ -57,6 +58,9 @@ const allowedOrigins =
   allowedOriginsEnv.length > 0 ? allowedOriginsEnv : defaultAllowedOrigins;
 const isProduction = process.env.NODE_ENV === "production";
 const isLocalDev = process.env.LOCAL_DEV_MODE === "true";
+const clamavPath = process.env.CLAMAV_PATH || "clamscan";
+const clamavEnabled = process.env.CLAMAV_ENABLED !== "false";
+const clamavTimeoutMs = Number(process.env.CLAMAV_TIMEOUT_MS || 15000);
 const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const supabaseBucket = process.env.SUPABASE_BUCKET || "submissions";
@@ -351,6 +355,25 @@ async function compressUploadedImage(file, detectedMime) {
   };
 }
 
+async function scanWithClamav(filePath) {
+  return new Promise((resolve, reject) => {
+    execFile(
+      clamavPath,
+      ["--infected", "--no-summary", filePath],
+      { timeout: clamavTimeoutMs },
+      (error, stdout, stderr) => {
+        if (!error) {
+          return resolve({ clean: true });
+        }
+        if (error.code === 1) {
+          return resolve({ clean: false, reason: stdout || stderr });
+        }
+        return reject(error);
+      }
+    );
+  });
+}
+
 async function uploadToSupabase(file, submissionId) {
   if (!supabase) {
     throw new Error("Supabase is not configured");
@@ -474,6 +497,21 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     console.error("Image compression error:", error);
     await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Image compression failed" });
+  }
+
+  if (!isLocalDev && clamavEnabled) {
+    try {
+      const scanResult = await scanWithClamav(req.file.path);
+      if (!scanResult.clean) {
+        console.warn("Virus scan failed:", scanResult.reason);
+        await safeUnlink(req.file.path);
+        return res.status(400).json({ message: "File failed virus scan" });
+      }
+    } catch (error) {
+      console.error("Virus scan error:", error);
+      await safeUnlink(req.file.path);
+      return res.status(500).json({ message: "Virus scan failed" });
+    }
   }
 
   if (!supabase && !isLocalDev) {
