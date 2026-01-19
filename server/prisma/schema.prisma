@@ -20,6 +20,8 @@ model Submission {
   price            Decimal  @db.Decimal(10, 2)
   fileName         String?
   fileOriginalName String?
+  fileBucket       String?
+  fileKey          String?
   createdAt        DateTime @default(now())
 
   @@index([createdAt])

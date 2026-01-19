@@ -11,6 +11,7 @@ const rateLimit = require("express-rate-limit");
 const { z } = require("zod");
 const nodemailer = require("nodemailer");
 const sharp = require("sharp");
+const { createClient } = require("@supabase/supabase-js");
 const { PrismaClient, Prisma } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -56,6 +57,15 @@ const allowedOrigins =
   allowedOriginsEnv.length > 0 ? allowedOriginsEnv : defaultAllowedOrigins;
 const isProduction = process.env.NODE_ENV === "production";
 const isLocalDev = process.env.LOCAL_DEV_MODE === "true";
+const supabaseUrl = process.env.SUPABASE_URL || "";
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseBucket = process.env.SUPABASE_BUCKET || "submissions";
+const supabase =
+  supabaseUrl && supabaseServiceRoleKey
+    ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+        auth: { persistSession: false }
+      })
+    : null;
 
 // Paths
 const distDir = path.join(__dirname, "..", "dist", "weneedwax");
@@ -341,6 +351,34 @@ async function compressUploadedImage(file, detectedMime) {
   };
 }
 
+async function uploadToSupabase(file, submissionId) {
+  if (!supabase) {
+    throw new Error("Supabase is not configured");
+  }
+  const fileKey = `${submissionId}/${file.filename}`;
+  const fileBuffer = await fs.promises.readFile(file.path);
+  const { error } = await supabase.storage
+    .from(supabaseBucket)
+    .upload(fileKey, fileBuffer, {
+      contentType: file.mimetype,
+      upsert: false
+    });
+  if (error) {
+    throw error;
+  }
+  return { fileKey, fileBucket: supabaseBucket };
+}
+
+async function deleteFromSupabase(fileKey) {
+  if (!supabase || !fileKey) {
+    return;
+  }
+  const { error } = await supabase.storage.from(supabaseBucket).remove([fileKey]);
+  if (error) {
+    console.error("Failed to remove storage object:", error);
+  }
+}
+
 let formsWriteQueue = Promise.resolve();
 async function appendFormSubmission(entry, formsFilePath) {
   formsWriteQueue = formsWriteQueue.then(async () => {
@@ -438,9 +476,28 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
     return res.status(500).json({ message: "Image compression failed" });
   }
 
+  if (!supabase && !isLocalDev) {
+    await safeUnlink(req.file.path);
+    return res.status(500).json({ message: "Storage is not configured" });
+  }
+
+  const submissionId = crypto.randomUUID();
+  let storageInfo = { fileKey: null, fileBucket: null };
+
+  if (!isLocalDev) {
+    try {
+      storageInfo = await uploadToSupabase(req.file, submissionId);
+    } catch (error) {
+      console.error("Storage upload failed:", error);
+      await safeUnlink(req.file.path);
+      return res.status(500).json({ message: "File storage failed" });
+    }
+  }
+
   try {
     await prisma.submission.create({
       data: {
+        id: submissionId,
         fullName: parsed.data.fullName,
         email: parsed.data.email,
         phone: parsed.data.phone,
@@ -451,11 +508,16 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
         condition: parsed.data.condition,
         price: new Prisma.Decimal(parsed.data.price),
         fileName: req.file ? req.file.filename : null,
-        fileOriginalName: req.file ? req.file.originalname : null
+        fileOriginalName: req.file ? req.file.originalname : null,
+        fileBucket: storageInfo.fileBucket,
+        fileKey: storageInfo.fileKey
       }
     });
   } catch (error) {
     console.error("Database write failed:", error);
+    if (storageInfo.fileKey) {
+      await deleteFromSupabase(storageInfo.fileKey);
+    }
     await safeUnlink(req.file.path);
     return res.status(500).json({ message: "Failed to save form data" });
   }
@@ -474,6 +536,7 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
 
   try {
     if (isLocalDev) {
+      await safeUnlink(req.file.path);
       return res.status(200).json({ message: "Upload successful (local mode)" });
     }
     const emailData = {
@@ -520,6 +583,7 @@ app.post("/upload", uploadLimiter, upload.single("file"), async (req, res) => {
       `
     });
     console.log("Email notification sent successfully");
+    await safeUnlink(req.file.path);
   } catch (emailError) {
     console.error("Error sending email:", emailError);
     await safeUnlink(req.file.path);
